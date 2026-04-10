@@ -1,0 +1,66 @@
+/* 
+  Localizable.strings
+  CHAT TOGETHER
+
+  Created by Playboi In Central on 3/14/26.
+  
+*/
+
+// LoginView
+"By continuing, you agree to our" = "By continuing, you agree to our";
+"Terms of Service" = "Terms of Service";
+"and" = "and";
+"Privacy Policy" = "Privacy Policy";
+
+// HomeView
+"Start Matching" = "Start Matching";
+"Stop Matching" = "Stop Matching";
+"Ready to meet someone?" = "Ready to meet someone?";
+"Looking for someone..." = "Looking for someone...";
+
+// MessagesView
+"New Friends" = "New Friends";
+"Messages" = "Messages";
+
+// ProfileView
+"Edit Profile" = "Edit Profile";
+"Bio" = "Bio";
+"Member since" = "Member since";
+"Friends" = "Friends";
+"Profile" = "Profile";
+
+// EditProfileView
+"Change Avatar" = "Change Avatar";
+"Display Name" = "Display Name";
+"Gender" = "Gender";
+"Select" = "Select";
+"Save Changes" = "Save Changes";
+
+// ChatView
+"Unfriend?" = "Unfriend?";
+"Cancel" = "Cancel";
+"Remove" = "Remove";
+"Are you sure you want to remove this friend?" = "Are you sure you want to remove this friend?";
+"Message..." = "Message...";
+"Send" = "Send";
+"Remove Friend" = "Remove Friend";
+"Accept" = "Accept";
+"Decline" = "Decline";
+"Friend Request Sent" = "Friend Request Sent";
+"Send Friend Request" = "Send Friend Request";
+
+// SettingsView
+"Appearance" = "Appearance";
+"Language" = "Language";
+"Blocked Users" = "Blocked Users";
+"Log Out" = "Log Out";
+"Delete Account" = "Delete Account";
+"Settings" = "Settings";
+"System" = "System";
+"Light" = "Light";
+"Dark" = "Dark";
+"Legal" = "Legal";
+
+// FriendsListView
+"Friends" = "Friends";
+"Search friends..." = "Search friends...";

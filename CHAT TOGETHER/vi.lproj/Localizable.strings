@@ -1,0 +1,65 @@
+/* 
+  Localizable.strings
+  CHAT TOGETHER
+
+  Created by Playboi In Central on 3/14/26.
+  
+*/
+
+// LoginView
+"By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";
+"Terms of Service" = "Điều khoản Dịch vụ";
+"and" = "và";
+"Privacy Policy" = "Chính sách Bảo mật";
+
+// HomeView
+"Start Matching" = "Bắt đầu tìm bạn";
+"Stop Matching" = "Dừng tìm bạn";
+"Ready to meet someone?" = "Sẵn sàng gặp gỡ ai đó chưa?";
+"Looking for someone..." = "Đang tìm kiếm ai đó...";
+
+// MessagesView
+"New Friends" = "Bạn Bè Mới";
+"Messages" = "Tin Nhắn";
+
+// ProfileView
+"Edit Profile" = "Chỉnh sửa Trang cá nhân";
+"About me" = "Về tôi";
+"Member since" = "Tham gia từ";
+"Friends" = "Bạn bè";
+"Profile" = "Trang cá nhân";
+
+// EditProfileView
+"Change Avatar" = "Đổi ảnh đại diện";
+"Display Name" = "Tên hiển thị";
+"Gender" = "Giới tính";
+"Select" = "Chọn";
+"Save Changes" = "Lưu thay đổi";
+
+// ChatView
+"Unfriend?" = "Xoá bạn?";
+"Cancel" = "Huỷ";
+"Remove" = "Xoá";
+"Are you sure you want to remove this friend?" = "Bạn có chắc muốn xoá bạn không?";
+"Message..." = "Tin nhắn...";
+"Send" = "Gửi";
+"Remove Friend" = "Xoá bạn";
+"Accept" = "Chấp nhận";
+"Decline" = "Từ chối";
+"Send Friend Request" = "Gửi lời mời kết bạn";
+"Friend Request Sent" = "Đã gửi lời mời kết bạn";
+
+// SettingsView
+"Appearance" = "Giao diện";
+"Language" = "Ngôn ngữ";
+"Blocked Users" = "Danh sách chặn";
+"Log Out" = "Đăng xuất";
+"Delete Account" = "Xoá tài khoản";
+"Settings" = "Cài đặt";
+"System" = "Theo hệ thống";
+"Light" = "Sáng";
+"Dark" = "Tối";
+"Legal" = "Pháp lý";
+
+// FriendsListView
+"Search friends..." = "Tìm kiếm bạn bè...";
