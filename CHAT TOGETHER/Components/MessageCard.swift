@@ -20,7 +20,7 @@ struct MessageCard: View {
         }
     
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 9) {
             
             // MARK: - Avatar
             AsyncImage(url: URL(string: partner?.avatar ?? "")) { image in

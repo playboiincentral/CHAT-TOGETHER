@@ -13,6 +13,7 @@ struct ChatView: View {
     @State private var selectedUser: AppUser?
     @State private var showMentionList = false
     @State private var mentionQuery = ""
+    @State private var hasScrolledToBottom = false
     
     init(room: ChatRoom) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room))
@@ -272,10 +273,14 @@ struct ChatView: View {
     private var messageSection: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 4) {
                     
                     ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
                         let previous = index > 0 ? viewModel.messages[index - 1] : nil
+                        let next = index < viewModel.messages.count - 1 ? viewModel.messages[index + 1] : nil
+                        let position = messagePosition(current: message, previous: previous, next: next)
+                        
+                        let showAvatar = (position == .bottom || position == .single)
                         
                         if shouldShowDate(current: message, previous: previous) {
                             dateSeparator(for: message)
@@ -286,6 +291,11 @@ struct ChatView: View {
                             isCurrentUser: message.senderId == viewModel.userId,
                             partner: viewModel.partner,
                             timeFormatter: timeFormatter,
+                            showAvatar: showAvatar,
+                            position: position,
+                            onTapAvatar: { user in
+                                selectedUser = user
+                            },
                             onLongPress: { message in
                                 selectedMessage = message
                                 showReactionPicker = true
@@ -295,19 +305,20 @@ struct ChatView: View {
                             }
                         )
                         .id(message.id)
+                        .padding(.top, topSpacing(for: position))
                     }
                 }
                 .padding()
             }
-            .onAppear {
-                if let lastId = viewModel.messages.last?.id {
+            .onChange(of: viewModel.messages.count) { _ in
+                guard let lastId = viewModel.messages.last?.id else { return }
+                
+                if !hasScrolledToBottom {
                     DispatchQueue.main.async {
                         proxy.scrollTo(lastId, anchor: .bottom)
+                        hasScrolledToBottom = true
                     }
-                }
-            }
-            .onChange(of: viewModel.messages.count) { _ in
-                if let lastId = viewModel.messages.last?.id {
+                } else {
                     withAnimation {
                         proxy.scrollTo(lastId, anchor: .bottom)
                     }
@@ -506,6 +517,44 @@ struct ChatView: View {
             requestId: requestId
         ) { _ in }
     }
+    
+    private func messagePosition(
+        current: Message,
+        previous: Message?,
+        next: Message?
+    ) -> MessagePosition {
+        
+        func isSameGroup(_ m1: Message?, _ m2: Message?) -> Bool {
+            guard let m1 = m1, let m2 = m2 else { return false }
+            
+            guard m1.senderId == m2.senderId,
+                  let d1 = m1.createdAt,
+                  let d2 = m2.createdAt else {
+                return false
+            }
+            
+            return abs(d1.timeIntervalSince(d2)) < 60
+        }
+        
+        let isPrevSame = isSameGroup(previous, current)
+        let isNextSame = isSameGroup(current, next)
+        
+        switch (isPrevSame, isNextSame) {
+        case (false, false): return .single
+        case (false, true): return .top
+        case (true, true): return .middle
+        case (true, false): return .bottom
+        }
+    }
+    
+    private func topSpacing(for position: MessagePosition) -> CGFloat {
+        switch position {
+        case .top, .single:
+            return 10
+        case .middle, .bottom:
+            return 2
+        }
+    }
 }
 
 struct MessageRow: View {
@@ -513,34 +562,44 @@ struct MessageRow: View {
     let isCurrentUser: Bool
     let partner: AppUser?
     let timeFormatter: DateFormatter
+    let showAvatar: Bool
+    let position: MessagePosition
     
+    let onTapAvatar: (AppUser) -> Void
     let onLongPress: (Message) -> Void
     let onTapReaction: (Message) -> Void
     
     var isAI: Bool {
         message.senderId == "AI"
     }
-    
+        
     var body: some View {
         VStack(spacing: 4) {
             
-            HStack(alignment: .bottom) {
+            HStack(alignment: .bottom, spacing: 8) {
                 
                 if isCurrentUser && !isAI {
                     Spacer()
                     bubble
                 } else {
-                    
-                    if let partner = partner {
+                    Group {
+                    if let partner = partner, showAvatar {
                         AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
                             image.resizable().scaledToFill()
                         } placeholder: {
                             Circle().fill(Color.gray.opacity(0.3))
                         }
-                        .frame(width: 32, height: 32)
+                        .frame(width: 38, height: 38)
                         .clipShape(Circle())
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            onTapAvatar(partner)
+                        }
+                    } else {
+                        Color.clear
+                            .frame(width: 38)
                     }
-                    
+                }
                     bubble
                     Spacer()
                 }
@@ -549,7 +608,9 @@ struct MessageRow: View {
             HStack {
                 if isCurrentUser { Spacer() }
                 
-                if let date = message.createdAt {
+                if let date = message.createdAt,
+                   position == .bottom || position == .single {
+                    
                     Text(timeFormatter.string(from: date))
                         .font(.caption2)
                         .foregroundColor(.gray)
@@ -568,7 +629,7 @@ struct MessageRow: View {
                 .foregroundColor(isCurrentUser ? .white : .primary)
                 .padding()
                 .background(isCurrentUser ? Color.pink : Color(.systemGray5))
-                .cornerRadius(20)
+                .clipShape(bubbleShape)
                 .onLongPressGesture {
                     if !isCurrentUser {
                         onLongPress(message)
@@ -590,5 +651,16 @@ struct MessageRow: View {
                     }
             }
         }
+    }
+    
+    private var bubbleShape: some Shape {
+        let radius: CGFloat = 20
+        
+        return UnevenRoundedRectangle(
+            topLeadingRadius: isCurrentUser ? radius : (position == .top || position == .single ? radius : 6),
+            bottomLeadingRadius: isCurrentUser ? radius : (position == .bottom || position == .single ? radius : 6),
+            bottomTrailingRadius: isCurrentUser ? (position == .bottom || position == .single ? radius : 6) : radius,
+            topTrailingRadius: isCurrentUser ? (position == .top || position == .single ? radius : 6) : radius
+        )
     }
 }
