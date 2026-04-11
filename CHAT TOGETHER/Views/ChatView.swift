@@ -14,6 +14,7 @@ struct ChatView: View {
     @State private var showMentionList = false
     @State private var mentionQuery = ""
     @State private var hasScrolledToBottom = false
+    @State private var isProcessing = false
     
     init(room: ChatRoom) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room))
@@ -91,7 +92,10 @@ struct ChatView: View {
             .alert("Do you want to end the conversation?", isPresented: $showLeaveAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Leave", role: .destructive) {
-                    viewModel.leaveRoom()
+                    isProcessing = true
+                    viewModel.leaveRoom() {
+                        isProcessing = false
+                    }
                 }
             }
             .alert("The other person has left the room.", isPresented: $viewModel.showPartnerLeftAlert) {
@@ -125,6 +129,20 @@ struct ChatView: View {
                 
             } message: {
                 Text("You will not be matched with this person again. This action cannot be undone.")
+            }
+            .disabled(isProcessing)
+            .overlay {
+                if isProcessing {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        
+                        ProgressView("Processing...")
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                    }
+                }
             }
             .sheet(isPresented: $showReactionPicker) {
                 if let message = selectedMessage {
@@ -455,10 +473,16 @@ struct ChatView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.partner?.uid else { return }
+        guard !isProcessing else { return }
+
+        isProcessing = true
         
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
-            if success {
-                
+            DispatchQueue.main.async {
+                isProcessing = false
+                if success {
+                    dismiss()
+                }
             }
         }
     }
@@ -466,13 +490,14 @@ struct ChatView: View {
     private func blockUser() {
         guard let partnerId = viewModel.partner?.uid else { return }
         
+        isProcessing = true
+        
         UserRelationService.shared.blockUser(targetUserId: partnerId) { success in
-            if success {
-                DispatchQueue.main.async {
-                    // 🔥 Thoát ngay lập tức (giống Tinder)
+            DispatchQueue.main.async {
+                isProcessing = false
+                
+                if success {
                     viewModel.shouldDismiss = true
-                    
-                    // 🔥 Cleanup listeners để tránh crash do room bị xoá
                     viewModel.cleanupAfterBlock()
                 }
             }

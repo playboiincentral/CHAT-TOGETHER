@@ -246,7 +246,7 @@ class ChatViewModel: ObservableObject {
     }
     
     // MARK: - Leave room
-    func leaveRoom() {
+    func leaveRoom(completion: @escaping () -> Void) {
         let roomId = room.roomId
         guard !roomId.isEmpty else { return }
         
@@ -259,6 +259,10 @@ class ChatViewModel: ObservableObject {
         Functions.functions(region: "asia-southeast1")
             .httpsCallable("leaveRoom")
             .call(data) { [weak self] _, error in
+                
+                DispatchQueue.main.async {
+                    completion() // 🔥 luôn gọi để tắt loading
+                }
                 
                 if let error = error {
                     print("Leave error:", error.localizedDescription)

@@ -10,6 +10,8 @@ struct ProfileView: View {
     @State private var showReportView = false
     @State private var showBlockAlert = false
     @State private var showEditProfile = false
+    @State private var showRemoveFriendAlert = false
+    @State private var isProcessing = false
     let isCurrentUser: Bool
     let roomId: String?
     
@@ -128,37 +130,62 @@ struct ProfileView: View {
                     }
                 }
             }
-        }
-        .fullScreenCover(isPresented: $showEditProfile) {
-            NavigationStack {
-                EditProfileView()
+            .disabled(isProcessing)
+            .overlay {
+                if isProcessing {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        
+                        ProgressView("Processing...")
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                    }
+                }
             }
-        }
-        .navigationDestination(isPresented: $showReportView) {
-            if let roomId = roomId,
-               let reporterId = Auth.auth().currentUser?.uid,
-               let partnerId = viewModel.user?.uid {
+            .fullScreenCover(isPresented: $showEditProfile) {
+                NavigationStack {
+                    EditProfileView()
+                }
+            }
+            .navigationDestination(isPresented: $showReportView) {
+                if let roomId = roomId,
+                   let reporterId = Auth.auth().currentUser?.uid,
+                   let partnerId = viewModel.user?.uid {
+                    
+                    ReportView(
+                        roomId: roomId,
+                        reporterId: reporterId,
+                        reportedUserId: partnerId
+                    )
+                }
+            }
+            .alert("Remove friend?", isPresented: $showRemoveFriendAlert) {
                 
-                ReportView(
-                    roomId: roomId,
-                    reporterId: reporterId,
-                    reportedUserId: partnerId
-                )
+                Button("Cancel", role: .cancel) { }
+                
+                Button("Remove", role: .destructive) {
+                    removeFriend()
+                }
+                
+            } message: {
+                Text("Are you sure you want to remove this friend?")
             }
-        }
-        .alert("Block user?", isPresented: $showBlockAlert) {
-            
-            Button("Cancel", role: .cancel) { }
-            
-            Button("Block", role: .destructive) {
-                blockUser()
+            .alert("Block user?", isPresented: $showBlockAlert) {
+                
+                Button("Cancel", role: .cancel) { }
+                
+                Button("Block", role: .destructive) {
+                    blockUser()
+                }
+                
+            } message: {
+                Text("You will not be matched with this person again. This action cannot be undone.")
             }
-            
-        } message: {
-            Text("You will not be matched with this person again. This action cannot be undone.")
-        }
-        .onDisappear {
-            viewModel.removeListener()
+            .onDisappear {
+                viewModel.removeListener()
+            }
         }
     }
     
@@ -200,7 +227,7 @@ struct ProfileView: View {
                 if relationManager.isFriend(with: partnerId) {
                     
                     Button {
-                        removeFriend()
+                        showRemoveFriendAlert = true
                     } label: {
                         Text("Remove Friend")
                             .frame(maxWidth: .infinity)
@@ -258,14 +285,36 @@ struct ProfileView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.user?.uid else { return }
+        guard !isProcessing else { return }
         
-        UserRelationService.shared.removeFriend(partnerId: partnerId) { _ in }
+        isProcessing = true
+        
+        UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
+            DispatchQueue.main.async {
+                isProcessing = false
+                
+                if success {
+                    dismiss()
+                }
+            }
+        }
     }
     
     private func blockUser() {
         guard let partnerId = viewModel.user?.uid else { return }
+        guard !isProcessing else { return }
         
-        UserRelationService.shared.blockUser(targetUserId: partnerId) { _ in }
+        isProcessing = true
+        
+        UserRelationService.shared.blockUser(targetUserId: partnerId) { success in
+            DispatchQueue.main.async {
+                isProcessing = false
+                
+                if success {
+                    dismiss()
+                }
+            }
+        }
     }
     
     private func sendOrCancelRequest() {

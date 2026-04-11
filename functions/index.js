@@ -94,10 +94,9 @@ exports.joinQueue = onCall(async (request) => {
 
     function clean(queue = []) {
       return queue.filter(item => {
-        if (!item?.joinedAt) return false;
+      if (!item || typeof item.joinedAt !== "number") return false;
 
-        const time = item.joinedAt.toDate().getTime();
-        return now - time < TIMEOUT;
+      return now - item.joinedAt < TIMEOUT;
       });
     }
 
@@ -169,7 +168,7 @@ exports.joinQueue = onCall(async (request) => {
         // ❌ không match được → vào queue
         myQueue.push({
           uid: userId,
-          joinedAt: admin.firestore.FieldValue.serverTimestamp()
+          joinedAt: Date.now()
         });
 
         data[myQueueKey] = myQueue;
@@ -179,7 +178,7 @@ exports.joinQueue = onCall(async (request) => {
 
       myQueue.push({
         uid: userId,
-        joinedAt: admin.firestore.FieldValue.serverTimestamp()
+        joinedAt: Date.now()
       });
 
       data[myQueueKey] = myQueue;
