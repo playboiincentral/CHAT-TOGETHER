@@ -17,6 +17,7 @@ class HomeViewModel: ObservableObject {
     @Published var currentRoom: ChatRoom?
     @Published var isMatching = false
     @Published var elapsedSeconds = 0
+    @Published var isCheckingRoom = true
     
     private var listener: ListenerRegistration?
     private var timer: Timer?
@@ -37,7 +38,13 @@ class HomeViewModel: ObservableObject {
         guard !userId.isEmpty else { return }
         guard !isMatching else { return }
         
-        cleanup() // hard reset
+        // 🔥 BLOCK khi đang check reconnect
+        guard !isCheckingRoom else { return }
+        
+        // 🔥 BLOCK nếu đã có room
+        guard currentRoom == nil else { return }
+        
+        cleanup()
         
         elapsedSeconds = 0
         isMatching = true
@@ -137,5 +144,48 @@ class HomeViewModel: ObservableObject {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    func checkExistingRoom() {
+        guard !userId.isEmpty else {
+            isCheckingRoom = false
+            return
+        }
+        
+        db.collection("chatRooms")
+            .whereField("users", arrayContains: userId)
+            .whereField("status", isEqualTo: "active")
+            .whereField("type", isEqualTo: "random")
+            .limit(to: 1)
+            .getDocuments { [weak self] snapshot, _ in
+                
+                guard let self = self else { return }
+                defer {
+                    DispatchQueue.main.async {
+                        self.isCheckingRoom = false
+                    }
+                }
+                guard let document = snapshot?.documents.first else { return }
+                
+                let data = document.data()
+                
+                let room = ChatRoom(
+                    id: document.documentID,
+                    users: data["users"] as? [String] ?? [],
+                    type: ChatRoomType(rawValue: data["type"] as? String ?? "") ?? .random,
+                    activeUsers: data["activeUsers"] as? [String] ?? [],
+                    status: RoomStatus(rawValue: data["status"] as? String ?? "") ?? .active,
+                    createdAt: data["createdAt"] as? Timestamp,
+                    endedAt: data["endedAt"] as? Timestamp,
+                    endedBy: data["endedBy"] as? String,
+                    hasReport: data["hasReport"] as? Bool ?? false,
+                    lastActivityAt: data["lastActivityAt"] as? Timestamp
+                )
+                
+                DispatchQueue.main.async {
+                    self.currentRoom = room
+                    self.isMatching = false
+                }
+            }
     }
 }

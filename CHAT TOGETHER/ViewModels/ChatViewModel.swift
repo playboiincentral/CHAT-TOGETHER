@@ -191,12 +191,11 @@ class ChatViewModel: ObservableObject {
                         self.isRoomActive = false
                         self.stopHeartbeat()
                         
-                        // ❗ chỉ hiện alert nếu partner leave
-                        if let endedBy = endedBy,
-                           endedBy != self.userId {
+                        if endedBy == "timeout" {
+                            self.showPartnerLeftAlert = true
+                        } else if endedBy != self.userId {
                             self.showPartnerLeftAlert = true
                         } else {
-                            // ❗ nếu mình là người leave → thoát luôn
                             self.shouldDismiss = true
                         }
                         
@@ -313,6 +312,10 @@ class ChatViewModel: ObservableObject {
         if room.type == .friend {
             markAsRead()
         }
+        
+        if room.type == .random {
+               sendHeartbeat()
+           }
     }
     
     func listenFriendship() {

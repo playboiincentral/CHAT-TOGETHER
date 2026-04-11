@@ -62,6 +62,8 @@ struct HomeView: View {
                 }
                 
                 Button {
+                    guard !viewModel.isCheckingRoom else { return }
+                    
                     if viewModel.isMatching {
                         viewModel.stopMatching()
                     } else {
@@ -69,17 +71,26 @@ struct HomeView: View {
                     }
                 } label: {
                     HStack {
-                        Image(systemName: viewModel.isMatching ? "xmark.circle.fill" : "heart.fill")
-                        Text(viewModel.isMatching ? "Stop Matching" : "Start Matching")
-                            .fontWeight(.bold)
+                        Image(systemName:
+                            viewModel.isCheckingRoom
+                            ? "hourglass"
+                            : (viewModel.isMatching ? "xmark.circle.fill" : "heart.fill")
+                        )
+                        
+                        Text(
+                            viewModel.isCheckingRoom
+                            ? "Reconnecting..."
+                            : (viewModel.isMatching ? "Stop Matching" : "Start Matching")
+                        )
+                        .fontWeight(.bold)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(
                         LinearGradient(
-                            colors: viewModel.isMatching
+                            colors: viewModel.isCheckingRoom
                             ? [.gray, .gray]
-                            : [.pink, .red],
+                            : (viewModel.isMatching ? [.gray, .gray] : [.pink, .red]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -87,9 +98,11 @@ struct HomeView: View {
                     .foregroundColor(.white)
                     .clipShape(Capsule())
                     .shadow(
-                        color: viewModel.isMatching
-                        ? .black.opacity(0.3)
-                        : .pink.opacity(0.4),
+                        color: viewModel.isCheckingRoom
+                        ? .black.opacity(0.2)
+                        : (viewModel.isMatching
+                           ? .black.opacity(0.3)
+                           : .pink.opacity(0.4)),
                         radius: 10,
                         y: 5
                     )
@@ -97,12 +110,16 @@ struct HomeView: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.6),
                                value: viewModel.isMatching)
                 }
+                .disabled(viewModel.isCheckingRoom || viewModel.currentRoom != nil)
                 .padding(.horizontal, 40)
                 
                 Spacer()
             }
             .fullScreenCover(item: $viewModel.currentRoom) { room in
                 ChatView(room: room)
+            }
+            .onAppear {
+                viewModel.checkExistingRoom()
             }
             .onChange(of: viewModel.currentRoom != nil) { isPresented in
                 if !isPresented {

@@ -28,7 +28,6 @@ exports.joinQueue = onCall(async (request) => {
   const userRef = db.collection("users").doc(userId);
   const queueRef = db.collection("system").doc("matchQueue");
 
-  // 🔥 Lấy gender 1 lần
   const userDoc = await userRef.get();
   if (!userDoc.exists) throw new Error("User not found");
 
@@ -40,36 +39,41 @@ exports.joinQueue = onCall(async (request) => {
 
   let createdRoomId = null;
 
-  // 🔥 BLOCK LIST
-const blockSnapshot = await db.collection("blocks")
-  .where("blockerId", "==", userId)
-  .get();
+  // =========================
+  // 🔥 BLOCK + FRIEND
+  // =========================
 
-const blockedSet = new Set(
-  blockSnapshot.docs.map(doc => doc.data().blockedId)
-);
+  const blockSnapshot = await db.collection("blocks")
+    .where("blockerId", "==", userId)
+    .get();
 
-// 🔥 REVERSE BLOCK (người khác block mình)
-const blockedBySnapshot = await db.collection("blocks")
-  .where("blockedId", "==", userId)
-  .get();
+  const blockedSet = new Set(
+    blockSnapshot.docs.map(doc => doc.data().blockedId)
+  );
 
-blockedBySnapshot.docs.forEach(doc => {
-  blockedSet.add(doc.data().blockerId);
-});
+  const blockedBySnapshot = await db.collection("blocks")
+    .where("blockedId", "==", userId)
+    .get();
 
-// 🔥 FRIEND LIST
-const friendSnapshot = await db.collection("friendships")
-  .where("users", "array-contains", userId)
-  .get();
+  blockedBySnapshot.docs.forEach(doc => {
+    blockedSet.add(doc.data().blockerId);
+  });
 
-const friendSet = new Set();
+  const friendSnapshot = await db.collection("friendships")
+    .where("users", "array-contains", userId)
+    .get();
 
-friendSnapshot.docs.forEach(doc => {
-  const users = doc.data().users || [];
-  const other = users.find(u => u !== userId);
-  if (other) friendSet.add(other);
-});
+  const friendSet = new Set();
+
+  friendSnapshot.docs.forEach(doc => {
+    const users = doc.data().users || [];
+    const other = users.find(u => u !== userId);
+    if (other) friendSet.add(other);
+  });
+
+  // =========================
+  // 🔥 TRANSACTION
+  // =========================
 
   await db.runTransaction(async (transaction) => {
     const queueSnap = await transaction.get(queueRef);
@@ -81,64 +85,105 @@ friendSnapshot.docs.forEach(doc => {
     let myQueue = data[myQueueKey] || [];
     let targetQueue = data[targetQueueKey] || [];
 
+    const now = Date.now();
+    const TIMEOUT = 30 * 1000;
+
+    // =========================
+    // 🔥 CLEAN QUEUE
+    // =========================
+
+    function clean(queue = []) {
+      return queue.filter(item => {
+        if (!item?.joinedAt) return false;
+
+        const time = item.joinedAt.toDate().getTime();
+        return now - time < TIMEOUT;
+      });
+    }
+
+    myQueue = clean(myQueue);
+    targetQueue = clean(targetQueue);
+
+    // =========================
     // ❌ tránh join trùng
+    // =========================
+
     const alreadyInQueue =
-      myQueue.includes(userId) || targetQueue.includes(userId);
+      myQueue.some(u => u.uid === userId) ||
+      targetQueue.some(u => u.uid === userId);
 
-    if (alreadyInQueue) return;
+    if (alreadyInQueue) {
+      data[myQueueKey] = myQueue;
+      data[targetQueueKey] = targetQueue;
+      transaction.set(queueRef, data);
+      return;
+    }
 
-    // 🔥 MATCH NGAY (O(1))
+    // =========================
+    // 🔥 MATCH
+    // =========================
+
     if (targetQueue.length > 0) {
 
       const MAX_CHECK = 10;
-      
-  let partnerId = null;
+      let partnerId = null;
 
-  for (let i = 0; i < Math.min(MAX_CHECK, targetQueue.length); i++) {
-    const candidate = targetQueue[i];
+      for (let i = 0; i < Math.min(MAX_CHECK, targetQueue.length); i++) {
 
-    const isBlocked = blockedSet.has(candidate);
-    const isFriend = friendSet.has(candidate);
+        const candidate = targetQueue[i];
+        const candidateId = candidate.uid;
 
-    if (!isBlocked && !isFriend) {
-      partnerId = candidate;
-      targetQueue.splice(i, 1);
-      break;
+        const isBlocked = blockedSet.has(candidateId);
+        const isFriend = friendSet.has(candidateId);
+
+        if (!isBlocked && !isFriend) {
+          partnerId = candidateId;
+          targetQueue.splice(i, 1);
+          break;
+        }
+      }
+
+      if (partnerId) {
+
+        const roomRef = db.collection("chatRooms").doc();
+        createdRoomId = roomRef.id;
+
+        transaction.set(roomRef, {
+          users: [userId, partnerId],
+          type: "random",
+          activeUsers: [userId, partnerId],
+          status: "active",
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          endedAt: null,
+          endedBy: null,
+          hasReport: false,
+          lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastMessage: null,
+          lastMessageSenderId: null,
+          lastMessageAt: null
+        });
+
+        data[targetQueueKey] = targetQueue;
+
+      } else {
+        // ❌ không match được → vào queue
+        myQueue.push({
+          uid: userId,
+          joinedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        data[myQueueKey] = myQueue;
+      }
+
+    } else {
+
+      myQueue.push({
+        uid: userId,
+        joinedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      data[myQueueKey] = myQueue;
     }
-  }
-
-  if (partnerId) {
-
-    const roomRef = db.collection("chatRooms").doc();
-    createdRoomId = roomRef.id;
-
-    transaction.set(roomRef, {
-      users: [userId, partnerId],
-      type: "random",
-      activeUsers: [userId, partnerId],
-      status: "active",
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      endedAt: null,
-      endedBy: null,
-      hasReport: false,
-      lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
-      lastMessage: null,
-      lastMessageSenderId: null,
-      lastMessageAt: null
-    });
-
-    data[targetQueueKey] = targetQueue;
-
-  } else {
-    // ❌ không có ai phù hợp → vào queue
-    myQueue.push(userId);
-    data[myQueueKey] = myQueue;
-  }
-
-} else {
-  myQueue.push(userId);
-  data[myQueueKey] = myQueue;
-}
 
     transaction.set(queueRef, data);
   });
@@ -201,10 +246,19 @@ exports.leaveQueue = onCall(async (request) => {
     const queueDoc = await transaction.get(queueRef);
     if (!queueDoc.exists) return;
 
-    let users = queueDoc.data().users || [];
-    users = users.filter(uid => uid !== userId);
+    const data = queueDoc.data();
 
-    transaction.set(queueRef, { users });
+    let male = data.male || [];
+    let female = data.female || [];
+
+    // 🔥 remove khỏi cả 2 queue (an toàn tuyệt đối)
+    male = male.filter(u => u.uid !== userId);
+    female = female.filter(u => u.uid !== userId);
+
+    transaction.set(queueRef, {
+      male,
+      female
+    });
   });
 
   return { success: true };
@@ -267,7 +321,7 @@ exports.detectInactiveRooms = onSchedule(
   "every 1 minutes",
   async () => {
 
-    const timeoutTime = new Date(Date.now() - 45 * 1000);
+    const timeoutTime = new Date(Date.now() - 30 * 1000);
 
     const snapshot = await db.collection("chatRooms")
       .where("status", "==", "active")
@@ -277,7 +331,9 @@ exports.detectInactiveRooms = onSchedule(
     for (const doc of snapshot.docs) {
 
       const room = doc.data();
-      const lastActivity = room.lastActivityAt?.toDate?.();
+      const lastActivity = room.lastActivityAt
+        ? room.lastActivityAt.toDate()
+        : null;
 
       if (!lastActivity) continue;
 
@@ -286,7 +342,7 @@ exports.detectInactiveRooms = onSchedule(
         await doc.ref.update({
           status: "ended",
           endedAt: admin.firestore.FieldValue.serverTimestamp(),
-          endedBy: "system"
+          endedBy: "timeout"
         });
 
         console.log("Room ended due to inactivity:", doc.id);
