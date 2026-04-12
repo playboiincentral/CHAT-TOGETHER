@@ -8,13 +8,13 @@
 import SwiftUI
 
 enum AppearanceMode: String, CaseIterable {
-    case system = "System"
     case light = "Light"
     case dark = "Dark"
 }
 
 struct SettingsView: View {
-    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .dark
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var vm: AuthViewModel
     @EnvironmentObject var currentUserManager: CurrentUserManager
     @State private var isDeleting = false
@@ -24,7 +24,6 @@ struct SettingsView: View {
                 
                 // MARK: - Appearance
                 Section("Appearance") {
-                    appearanceRow(.system)
                     appearanceRow(.light)
                     appearanceRow(.dark)
                 }
@@ -34,12 +33,14 @@ struct SettingsView: View {
                     NavigationLink("Privacy Policy") {
                         if let url = URL(string: "https://yourapp.com/privacy") {
                             WebView(url: url)
+                                .navigationBarBackButtonHidden(true)
                         }
                     }
                     
                     NavigationLink("Terms of Service") {
                         if let url = URL(string: "https://yourapp.com/terms") {
                             WebView(url: url)
+                                .navigationBarBackButtonHidden(true)
                         }
                     }
                 }
@@ -53,9 +54,27 @@ struct SettingsView: View {
                             print("Sign out error:", error.localizedDescription)
                         }
                     }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
+                
+                Section {
+                    VStack(spacing: 8) {
+                        Image("chattogether_logo")
+                            .resizable()
+                            .renderingMode(.template)
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .foregroundStyle(.pink)
+                        
+                        Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
+                            .foregroundStyle(.primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
                 
                 // MARK: - Delete Account
                 Section {
@@ -63,7 +82,7 @@ struct SettingsView: View {
                         DeleteAccountView()
                     } label: {
                         Text("Delete Account")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -71,7 +90,18 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .listStyle(.insetGrouped)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .foregroundStyle(.blue)
+                    }
+                }
+            }
         }
     }
     

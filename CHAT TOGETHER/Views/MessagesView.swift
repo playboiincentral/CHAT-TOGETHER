@@ -52,8 +52,7 @@ struct MessagesView: View {
                         
                         if friendsVM.roomsWithMessage.isEmpty {
                             Text("No messages yet")
-                                .foregroundColor(.primary)
-                                .fontWeight(.semibold)
+                                .foregroundColor(.gray)
                                 .padding(.horizontal)
                         }
                         

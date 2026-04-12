@@ -22,7 +22,7 @@ struct CHAT_TOGETHERApp: App {
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var relationManager = RelationManager()
     @StateObject private var currentUserManager = CurrentUserManager()
-    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .dark
     
     var body: some Scene {
         WindowGroup {
@@ -31,9 +31,9 @@ struct CHAT_TOGETHERApp: App {
                 .environmentObject(relationManager)
                 .environmentObject(currentUserManager)
                 .preferredColorScheme(
-                    appearanceMode == .dark ? .dark :
-                        appearanceMode == .light ? .light : nil
+                    appearanceMode == .dark ? .dark : .light
                 )
+                .animation(.easeInOut(duration: 0.2), value: appearanceMode)
                 .onAppear {
                     if authVM.userSession != nil {
                         relationManager.startListening()
@@ -47,19 +47,6 @@ struct CHAT_TOGETHERApp: App {
                     } else {
                         relationManager.stopListening()
                         currentUserManager.stopListening()
-                    }
-                }
-                .onChange(of: appearanceMode) { mode in
-                    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                          let window = windowScene.windows.first else { return }
-                    
-                    switch mode {
-                    case .system:
-                        window.overrideUserInterfaceStyle = .unspecified
-                    case .light:
-                        window.overrideUserInterfaceStyle = .light
-                    case .dark:
-                        window.overrideUserInterfaceStyle = .dark
                     }
                 }
         }

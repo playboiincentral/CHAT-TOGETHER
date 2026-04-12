@@ -33,7 +33,6 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    
                     // Avatar
                     if let avatar = displayUser?.avatar,
                        let url = URL(string: avatar) {
@@ -59,7 +58,7 @@ struct ProfileView: View {
                     
                     if let user = displayUser {
                         Text(user.fullname)
-                            .font(.title2)
+                            .font(.title)
                             .bold()
                     }
                     
@@ -68,11 +67,11 @@ struct ProfileView: View {
                         Button {
                             showEditProfile = true
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 4) {
                                 Image(systemName: "pencil")
                                 Text("Edit Profile")
-                                    .fontWeight(.semibold)
                             }
+                            .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(Color.blue)
@@ -200,8 +199,9 @@ struct ProfileView: View {
                 Text("Block")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.red.opacity(0.15))
-                    .foregroundColor(.red)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                    .background(Color(.systemGray5))
                     .cornerRadius(12)
             }
             if roomId != nil {
@@ -211,8 +211,9 @@ struct ProfileView: View {
                 Text("Report")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.orange.opacity(0.15))
-                    .foregroundColor(.orange)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.red)
+                    .background(Color(.systemGray5))
                     .cornerRadius(12)
             }
         }
@@ -232,14 +233,15 @@ struct ProfileView: View {
                         Text("Remove Friend")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
-                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                            .background(Color(.systemGray5))
                             .cornerRadius(12)
                     }
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
                     
-                    VStack(spacing: 10) {
+                    HStack(spacing: 10) {
                         
                         Button {
                             acceptRequest()
@@ -247,8 +249,9 @@ struct ProfileView: View {
                             Text("Accept")
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .background(Color(.systemGray5))
                                 .cornerRadius(12)
                         }
                         
@@ -258,8 +261,9 @@ struct ProfileView: View {
                             Text("Decline")
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.gray)
-                                .foregroundColor(.white)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .background(Color(.systemGray5))
                                 .cornerRadius(12)
                         }
                     }
@@ -271,11 +275,12 @@ struct ProfileView: View {
                     Button {
                         sendOrCancelRequest()
                     } label: {
-                        Text(isSent ? "Friend Request Sent" : "Add Friend")
+                        Text(isSent ? "Cancel Request" : "Add Friend")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(isSent ? Color.gray : Color.blue)
-                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                            .background(Color(.systemGray5))
                             .cornerRadius(12)
                     }
                 }
@@ -294,7 +299,7 @@ struct ProfileView: View {
                 isProcessing = false
                 
                 if success {
-                    dismiss()
+                    
                 }
             }
         }

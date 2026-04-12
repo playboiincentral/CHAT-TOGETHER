@@ -10,7 +10,7 @@ struct OnboardingView: View {
     @EnvironmentObject var currentUserManager: CurrentUserManager
     
     @State private var showImagePicker = false
-    
+
     init() {
         UIScrollView.disableSwipe()
     }
@@ -24,7 +24,13 @@ struct OnboardingView: View {
                     Spacer()
                     Text("Enter your display name *").font(.title2).fontWeight(.bold)
                     TextField("Display Name", text: $onboardingVM.displayName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .font(.system(size: 17, weight: .medium))
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.primary, lineWidth: 1.5)
+                        )
                         .autocorrectionDisabled(true)
                         .textInputAutocapitalization(.never)
                         .padding(.horizontal)
@@ -116,7 +122,10 @@ struct OnboardingView: View {
                     ZStack(alignment: .bottomTrailing) {
                         TextEditor(text: $onboardingVM.bio)
                             .frame(height: 150)
-                            .border(Color.gray.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.primary, lineWidth: 1.5)
+                            )
                             .autocorrectionDisabled(true)
                             .textInputAutocapitalization(.never)
                             .onChange(of: onboardingVM.bio) { newValue in
@@ -142,11 +151,10 @@ struct OnboardingView: View {
             }
             
             HStack {
+                // Back
                 Button(action: { previousPage() }) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
+                    Text("Back")
+                        .foregroundStyle(.gray)
                 }
                 .opacity(onboardingVM.currentPage == 0 ? 0 : 1)
                 .disabled(onboardingVM.currentPage == 0)
@@ -154,19 +162,43 @@ struct OnboardingView: View {
                 Spacer()
                 
                 if onboardingVM.currentPage < 3 {
-                    Button("Next") { nextPage() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(!isNextEnabled())
+                    
+                    // 🎯 Page Avatar (tag = 2)
+                    if onboardingVM.currentPage == 2 {
+                        
+                        if onboardingVM.avatar != nil {
+                            Button("Next") { nextPage() }
+                                .foregroundStyle(.blue)
+                        } else {
+                            Button("Skip") { nextPage() }
+                                .foregroundStyle(.blue)
+                        }
+                        
+                    } else {
+                        Button("Next") { nextPage() }
+                            .foregroundStyle(isNextEnabled() ? .blue : .gray.opacity(0.5))
+                            .disabled(!isNextEnabled())
+                    }
+                    
                 } else {
                     Button("Finish") { finishOnboarding() }
-                        .buttonStyle(.borderedProminent)
+                        .foregroundStyle(.blue)
                 }
             }
             .padding()
-            
+        }
+        .disabled(onboardingVM.isLoading)
+        .overlay {
             if onboardingVM.isLoading {
-                ProgressView("Uploading...")
-                    .padding()
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    ProgressView("Updating...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                }
             }
         }
     }

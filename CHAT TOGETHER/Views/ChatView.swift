@@ -201,6 +201,7 @@ struct ChatView: View {
                 Image(systemName: viewModel.room.type == .random
                       ? "rectangle.portrait.and.arrow.right"
                       : "chevron.left")
+                .fontWeight(.semibold)
                 .foregroundColor(viewModel.room.type == .random ? .red : .primary)
             }
             
@@ -222,6 +223,7 @@ struct ChatView: View {
                         
                         Text(partner.fullname)
                             .font(.headline)
+                            .fontWeight(.bold)
                             .foregroundColor(.primary)
                     }
                 }
@@ -238,7 +240,8 @@ struct ChatView: View {
                         showRemoveFriendAlert = true
                     } label: {
                         Image(systemName: "person.fill.checkmark")
-                            .foregroundStyle(.green)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
                     }
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
@@ -249,14 +252,16 @@ struct ChatView: View {
                             acceptRequest()
                         } label: {
                             Image(systemName: "checkmark")
-                                .foregroundStyle(.green)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.green.opacity(0.9))
                         }
                         
                         Button {
                             declineRequest()
                         } label: {
                             Image(systemName: "xmark")
-                                .foregroundStyle(.red)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.red.opacity(0.9))
                         }
                     }
                     
@@ -266,10 +271,11 @@ struct ChatView: View {
                         sendOrCancelRequest()
                     } label: {
                         Image(systemName: "person.badge.plus")
+                            .fontWeight(.semibold)
                             .foregroundStyle(
                                 relationManager.isRequestSent(to: partnerId)
                                 ? .gray
-                                : .green
+                                : .green.opacity(0.9)
                             )
                     }
                 }
@@ -281,6 +287,7 @@ struct ChatView: View {
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.title3)
+                    .fontWeight(.semibold)
             }
         }
         .padding(.horizontal)
@@ -346,7 +353,9 @@ struct ChatView: View {
     }
     
     private var inputSection: some View {
-        HStack {
+        let isEmpty = viewModel.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+        return HStack {
             TextField("message... (type @Togi to ask Togi)", text: $viewModel.messageText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.never)
@@ -356,15 +365,19 @@ struct ChatView: View {
                     handleMention(text)
                 }
                 .onSubmit {
-                    viewModel.sendMessage()
+                    if !isEmpty {
+                        viewModel.sendMessage()
+                    }
                 }
             
             Button {
                 viewModel.sendMessage()
             } label: {
                 Text("Send")
-                    .foregroundStyle(.pink)
+                    .fontWeight(.semibold)
+                    .foregroundColor(isEmpty ? .gray : .pink.opacity(0.9))
             }
+            .disabled(isEmpty)
         }
         .padding()
     }
@@ -481,7 +494,7 @@ struct ChatView: View {
             DispatchQueue.main.async {
                 isProcessing = false
                 if success {
-                    dismiss()
+                    
                 }
             }
         }
