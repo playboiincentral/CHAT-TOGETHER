@@ -31,14 +31,14 @@ struct SettingsView: View {
                 // MARK: - Legal
                 Section("Legal") {
                     NavigationLink("Privacy Policy") {
-                        if let url = URL(string: "https://yourapp.com/privacy") {
+                        if let url = URL(string: "https://sites.google.com/view/chattogether-privacy") {
                             WebView(url: url)
                                 .navigationBarBackButtonHidden(true)
                         }
                     }
                     
                     NavigationLink("Terms of Service") {
-                        if let url = URL(string: "https://yourapp.com/terms") {
+                        if let url = URL(string: "https://sites.google.com/view/chattogether-terms") {
                             WebView(url: url)
                                 .navigationBarBackButtonHidden(true)
                         }

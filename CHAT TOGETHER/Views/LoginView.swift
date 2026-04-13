@@ -55,7 +55,7 @@ struct LoginView: View {
                         
                         HStack(spacing: 4) {
                             
-                            Link("Terms of Service", destination: URL(string: "https://yourapp.com/terms")!)
+                            Link("Terms of Service", destination: URL(string: "https://sites.google.com/view/chattogether-terms")!)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
@@ -70,7 +70,7 @@ struct LoginView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Link("Privacy Policy", destination: URL(string: "https://yourapp.com/privacy")!)
+                            Link("Privacy Policy", destination: URL(string: "https://sites.google.com/view/chattogether-privacy")!)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
