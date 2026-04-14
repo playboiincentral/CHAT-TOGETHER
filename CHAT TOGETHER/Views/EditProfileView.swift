@@ -87,26 +87,6 @@ struct EditProfileView: View {
                 // MARK: Bio
                 bioEditor
                 
-                Button {
-                    saveProfile()
-                } label: {
-                    if isSaving {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Save")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(14)
-                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-                .disabled(isSaving || !isValid)
-                .opacity(isSaving || !isValid ? 0.6 : 1)
-                
             }
             .padding()
         }
@@ -117,10 +97,25 @@ struct EditProfileView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image(systemName: "chevron.backward")
-                        .fontWeight(.semibold)
+                    Text("Cancel")
                         .foregroundStyle(.primary)
                 }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    saveProfile()
+                } label: {
+                    ZStack {
+                        Text("Save")
+                            .foregroundStyle(.blue)
+                            .opacity(isSaving ? 0 : 1)
+                        
+                        ProgressView()
+                            .opacity(isSaving ? 1 : 0)
+                    }
+                    .frame(width: 50)
+                }
+                .disabled(isSaving || !isValid)
             }
         }
         .alert("Error", isPresented: Binding(

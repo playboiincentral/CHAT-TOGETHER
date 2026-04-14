@@ -12,7 +12,7 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @EnvironmentObject private var currentUser: CurrentUserManager
     @State private var showSettingsSheet: Bool = false
-    @State private var showProfileFullScreen = false
+    @State private var showProfileSheet = false
     
     var body: some View {
         NavigationStack {
@@ -37,7 +37,7 @@ struct HomeView: View {
                         Spacer()
                         
                         Button {
-                            showProfileFullScreen = true
+                            showProfileSheet = true
                         } label: {
                                 avatarView
                             }
@@ -117,7 +117,7 @@ struct HomeView: View {
             .fullScreenCover(item: $viewModel.currentRoom) { room in
                 ChatView(room: room)
             }
-            .fullScreenCover(isPresented: $showProfileFullScreen) {
+            .sheet(isPresented: $showProfileSheet) {
                 if let user = currentUser.currentUser {
                     ProfileView(user: user, isCurrentUser: true)
                 }

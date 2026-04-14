@@ -123,9 +123,8 @@ struct ProfileView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "chevron.backward")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                        Text("Done")
+                            .foregroundStyle(.blue)
                     }
                 }
             }
@@ -143,7 +142,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showEditProfile) {
+            .sheet(isPresented: $showEditProfile) {
                 NavigationStack {
                     EditProfileView()
                 }
