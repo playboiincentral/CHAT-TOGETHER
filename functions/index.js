@@ -3,7 +3,10 @@ const { onCall } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const admin = require("firebase-admin");
+const functions = require("firebase-functions");
+const vision = require("@google-cloud/vision");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -729,12 +732,12 @@ exports.onMessageCreated = onDocumentCreated(
     if (!data || data.isAI) return;
     if (!data.text) return;
 
-    const mentionRegex = /@togi\b/i;
+    const mentionRegex = /@tomi\b/i;
 
-    // ❌ không gọi Togi → ignore
+    // ❌ không gọi Tomi → ignore
     if (!mentionRegex.test(data.text)) return;
 
-    // 🔥 remove @Togi
+    // 🔥 remove @Tomi
     const prompt = data.text.replace(mentionRegex, "").trim();
     if (!prompt) return;
 
@@ -753,7 +756,7 @@ exports.onMessageCreated = onDocumentCreated(
         {
           role: "system",
           content: `
-You are Togi, a Gen Z chat buddy.
+You are Tomi, a Gen Z chat buddy.
 - Reply short
 - Casual like texting
 - Use emoji sometimes
@@ -777,18 +780,18 @@ You are Togi, a Gen Z chat buddy.
 
   const json = await response.json();
 
-  console.log("AI RAW:", JSON.stringify(json, null, 2)); // 🔥 debug
+  console.log("AI RAW:", JSON.stringify(json, null, 2));
 
   const aiText =
     json.output?.[0]?.content?.[0]?.text ||
-    "Togi bị lag rồi 😵";
+    "Tomi bị lag rồi 😵";
 
   await admin.firestore()
     .collection("chatRooms")
     .doc(event.params.roomId)
     .collection("messages")
     .add({
-      senderId: "Togi",
+      senderId: "Tomi",
       text: aiText,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isAI: true
@@ -799,3 +802,31 @@ You are Togi, a Gen Z chat buddy.
 }
   }
 );
+
+const client = new vision.ImageAnnotatorClient();
+
+exports.scanAvatar = onObjectFinalized(async (event) => {
+  const object = event.data;
+
+  const filePath = object.name;
+  const bucketName = object.bucket;
+
+  if (!filePath.includes("avatars/")) return;
+
+  const [result] = await client.safeSearchDetection(
+    `gs://${bucketName}/${filePath}`
+  );
+
+  const safe = result.safeSearchAnnotation;
+
+  const isUnsafe =
+    safe.adult === "LIKELY" ||
+    safe.adult === "VERY_LIKELY" ||
+    safe.violence === "LIKELY" ||
+    safe.racy === "VERY_LIKELY";
+
+  if (isUnsafe) {
+    await admin.storage().bucket(bucketName).file(filePath).delete();
+    console.log("Deleted unsafe image:", filePath);
+  }
+});

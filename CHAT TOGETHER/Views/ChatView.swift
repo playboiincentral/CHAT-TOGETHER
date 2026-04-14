@@ -51,7 +51,7 @@ struct ChatView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         
                         Button {
-                            insertMention("Togi")
+                            insertMention("Tomi")
                         } label: {
                             HStack {
                                 Circle()
@@ -59,7 +59,7 @@ struct ChatView: View {
                                     .frame(width: 30, height: 30)
                                     .overlay(Text("T").foregroundColor(.white))
                                 
-                                Text("Togi")
+                                Text("Tomi")
                                     .foregroundColor(.primary)
                                 
                                 Spacer()
@@ -356,7 +356,7 @@ struct ChatView: View {
         let isEmpty = viewModel.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         
         return HStack {
-            TextField("message... (type @Togi to ask Togi)", text: $viewModel.messageText)
+            TextField("message... (type @Tomi to ask Tomi)", text: $viewModel.messageText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled(true)

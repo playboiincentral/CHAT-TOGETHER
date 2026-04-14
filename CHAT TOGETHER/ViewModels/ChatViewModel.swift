@@ -213,7 +213,7 @@ class ChatViewModel: ObservableObject {
         guard !trimmed.isEmpty else { return }
         guard isRoomActive else { return }
         
-        let isAI = trimmed.range(of: "@togi", options: .caseInsensitive) != nil
+        let isAI = trimmed.range(of: "@tomi", options: .caseInsensitive) != nil
         
         messageText = ""
         

@@ -10,7 +10,8 @@ struct OnboardingView: View {
     @EnvironmentObject var currentUserManager: CurrentUserManager
     
     @State private var showImagePicker = false
-
+    @State private var previousDOB = ""
+    
     init() {
         UIScrollView.disableSwipe()
     }
@@ -18,6 +19,43 @@ struct OnboardingView: View {
     var body: some View {
         VStack {
             TabView(selection: $onboardingVM.currentPage) {
+                
+                // 0️⃣ DOB
+                VStack(spacing: 20) {
+                    Spacer()
+                    
+                    Text("Enter your date of birth *")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    TextField("MM/DD/YYYY", text: $onboardingVM.dobText)
+                        .keyboardType(.numberPad)
+                        .onChange(of: onboardingVM.dobText) { newValue in
+                            defer { previousDOB = newValue }
+                            
+                            // Nếu đang xoá → không format
+                            if newValue.count < previousDOB.count {
+                                return
+                            }
+                            
+                            onboardingVM.dobText = onboardingVM.formatDOB(newValue)
+                        }
+                        .padding()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(borderColor(), lineWidth: 2)
+                        )
+                        .padding(.horizontal)
+                    
+                    // ❗ Note
+                    Text("You cannot change your date of birth after confirming it.")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                .tag(0)
                 
                 // 1️⃣ Display Name
                 VStack(spacing: 20) {
@@ -46,7 +84,7 @@ struct OnboardingView: View {
                         }
                     Spacer()
                 }
-                .tag(0)
+                .tag(1)
                 
                 // 2️⃣ Gender
                 VStack(spacing: 30) {
@@ -86,7 +124,7 @@ struct OnboardingView: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                .tag(1)
+                .tag(2)
                 
                 // 3️⃣ Avatar (Optional)
                 VStack(spacing: 20) {
@@ -113,7 +151,7 @@ struct OnboardingView: View {
                     
                     Spacer()
                 }
-                .tag(2)
+                .tag(3)
                 
                 // 4️⃣ Bio (Optional)
                 VStack(spacing: 20) {
@@ -143,7 +181,7 @@ struct OnboardingView: View {
                     
                     Spacer()
                 }
-                .tag(3)
+                .tag(4)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             .sheet(isPresented: $showImagePicker) {
@@ -151,20 +189,36 @@ struct OnboardingView: View {
             }
             
             HStack {
-                // Back
+                // 🔙 Back
                 Button(action: { previousPage() }) {
                     Text("Back")
                         .foregroundStyle(.gray)
                 }
-                .opacity(onboardingVM.currentPage == 0 ? 0 : 1)
-                .disabled(onboardingVM.currentPage == 0)
+                // ❗ Ẩn Back ở page 0 và 1 (DOB + page sau DOB)
+                .opacity(onboardingVM.currentPage <= 1 ? 0 : 1)
+                .disabled(onboardingVM.currentPage <= 1)
                 
                 Spacer()
                 
-                if onboardingVM.currentPage < 3 {
+                // 🎯 PAGE 0: DOB
+                if onboardingVM.currentPage == 0 {
                     
-                    // 🎯 Page Avatar (tag = 2)
-                    if onboardingVM.currentPage == 2 {
+                    if onboardingVM.dobText.count == 10,
+                       onboardingVM.isValidDOB(onboardingVM.dobText),
+                       let age = onboardingVM.ageFromDOBString(onboardingVM.dobText) {
+                        
+                        Button(String(format: NSLocalizedString("confirm_age", comment: ""), age)) {
+                            nextPage()
+                        }
+                        .foregroundStyle(.blue)
+                    }
+                }
+                
+                // 🎯 CÁC PAGE KHÁC
+                else if onboardingVM.currentPage < 4 {
+                    
+                    // Avatar page (tag = 3 sau khi thêm DOB)
+                    if onboardingVM.currentPage == 3 {
                         
                         if onboardingVM.avatar != nil {
                             Button("Next") { nextPage() }
@@ -180,7 +234,10 @@ struct OnboardingView: View {
                             .disabled(!isNextEnabled())
                     }
                     
-                } else {
+                }
+                
+                // 🎯 FINISH
+                else {
                     Button("Finish") { finishOnboarding() }
                         .foregroundStyle(.blue)
                 }
@@ -205,6 +262,16 @@ struct OnboardingView: View {
     
     // MARK: - Helpers
     
+    func borderColor() -> Color {
+        // Chưa nhập đủ 10 ký tự → luôn màu xám
+        if onboardingVM.dobText.count < 10 {
+            return .gray
+        }
+        
+        // Nhập đủ rồi mới validate
+        return onboardingVM.isValidDOB(onboardingVM.dobText) ? .gray : .red
+    }
+    
     func previousPage() {
         if onboardingVM.currentPage > 0 {
             onboardingVM.currentPage -= 1
@@ -212,7 +279,7 @@ struct OnboardingView: View {
     }
     
     func nextPage() {
-        if onboardingVM.currentPage < 3 {
+        if onboardingVM.currentPage < 4 {
             onboardingVM.currentPage += 1
         }
     }
@@ -220,8 +287,11 @@ struct OnboardingView: View {
     func isNextEnabled() -> Bool {
         switch onboardingVM.currentPage {
         case 0:
-            return !onboardingVM.displayName.isEmpty
+            return onboardingVM.dobText.count == 10 &&
+                   onboardingVM.isValidDOB(onboardingVM.dobText)
         case 1:
+            return !onboardingVM.displayName.isEmpty
+        case 2:
             return onboardingVM.gender != nil
         default:
             return true

@@ -6,6 +6,8 @@
   
 */
 
+"confirm_age" = "Tôi xác nhận rằng tôi %d tuổi!";
+
 // LoginView
 "By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";
 "Terms of Service" = "Điều khoản Dịch vụ";

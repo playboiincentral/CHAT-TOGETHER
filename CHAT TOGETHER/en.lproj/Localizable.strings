@@ -6,6 +6,8 @@
   
 */
 
+"confirm_age" = "I confirm that I am %d years old!";
+
 // LoginView
 "By continuing, you agree to our" = "By continuing, you agree to our";
 "Terms of Service" = "Terms of Service";

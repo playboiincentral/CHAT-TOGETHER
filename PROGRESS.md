@@ -11,5 +11,6 @@
 
 ### ❌ Chưa làm
 - Chatbot AI
-- Privacy Policy & Terms of Use
+- Privacy Policy & Terms of Service
 - Admin
+- Tài liệu
