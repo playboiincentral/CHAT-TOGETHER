@@ -23,5 +23,8 @@
 - Giao diện: Privacy Policy & Terms of Service, quản lý người dùng, quản lý báo cáo.
 - Tự động quét ảnh.
 
+### 🔧 Đang làm
+- ChatbotAI
+
 ### ❌ Chưa làm
 - Tài liệu
