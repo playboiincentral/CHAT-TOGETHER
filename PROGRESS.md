@@ -12,5 +12,16 @@
 ### ❌ Chưa làm
 - Chatbot AI
 - Privacy Policy & Terms of Service
+- Tự động quét ảnh
 - Admin
+- Tài liệu
+
+## 18/04/2026
+
+### ✅ Đã hoàn thành
+- Chức năng: xem Privacy Policy & Terms of Service, quản lý người dùng, quản lý báo cáo.
+- Giao diện: Privacy Policy & Terms of Service, quản lý người dùng, quản lý báo cáo.
+- Tự động quét ảnh.
+
+### ❌ Chưa làm
 - Tài liệu
