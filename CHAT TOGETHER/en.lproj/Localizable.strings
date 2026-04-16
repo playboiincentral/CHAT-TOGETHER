@@ -7,12 +7,18 @@
 */
 
 "confirm_age" = "I confirm that I am %d years old!";
+"Loading user..." = "Loading user...";
 
 // LoginView
 "By continuing, you agree to our" = "By continuing, you agree to our";
 "Terms of Service" = "Terms of Service";
 "and" = "and";
 "Privacy Policy" = "Privacy Policy";
+
+// BannedView
+"Account Suspended" = "Account Suspended";
+"Your account has been suspended due to violation of community guidelines" = "Your account has been suspended due to violation of community guidelines";
+"ban_until %@" = "Your account is banned until %@";
 
 // HomeView
 "Start Matching" = "Start Matching";
@@ -54,7 +60,6 @@
 // SettingsView
 "Appearance" = "Appearance";
 "Language" = "Language";
-"Blocked Users" = "Blocked Users";
 "Log Out" = "Log Out";
 "Delete Account" = "Delete Account";
 "Settings" = "Settings";

@@ -18,7 +18,17 @@ struct ContentView: View {
         Group {
             if authVM.userSession != nil {
                 if let user = currentUserManager.currentUser {
-                    if user.gender == nil {
+                    
+                    if user.status == .banned {
+                        BannedView()
+                            .environmentObject(currentUserManager)
+                    }
+                    
+                    else if user.isAdmin {
+                        AdminView()
+                    }
+                    
+                    else if user.gender == nil {
                         // Show onboarding cho user mới
                         OnboardingView()
                             .environmentObject(onboardingVM)

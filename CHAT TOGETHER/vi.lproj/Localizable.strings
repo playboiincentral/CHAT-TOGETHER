@@ -7,6 +7,7 @@
 */
 
 "confirm_age" = "Tôi xác nhận rằng tôi %d tuổi!";
+"Loading user..." = "Đang tải người dùng...";
 
 // LoginView
 "By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";
@@ -14,9 +15,14 @@
 "and" = "và";
 "Privacy Policy" = "Chính sách Bảo mật";
 
+// BannedView
+"Account Suspended" = "Tài Khoản Bị Đình Chỉ";
+"Your account has been suspended due to violation of community guidelines." = "Tài khoản của bạn đã bị tạm ngưng do vi phạm quy định cộng đồng.";
+"ban_until %@" = "Tài khoản của bạn bị khóa đến %@";
+
 // HomeView
-"Start Matching" = "Bắt đầu tìm bạn";
-"Stop Matching" = "Dừng tìm bạn";
+"Start Matching" = "Bắt Đầu Tìm Bạn";
+"Stop Matching" = "Dừng Tìm Bạn";
 "Ready to meet someone?" = "Sẵn sàng gặp gỡ ai đó chưa?";
 "Looking for someone..." = "Đang tìm kiếm ai đó...";
 
@@ -32,36 +38,35 @@
 "Profile" = "Trang cá nhân";
 
 // EditProfileView
-"Change Avatar" = "Đổi ảnh đại diện";
-"Display Name" = "Tên hiển thị";
-"Gender" = "Giới tính";
+"Change Avatar" = "Đổi Ảnh Đại Diện";
+"Display Name" = "Tên Hiển Thị";
+"Gender" = "Giới Tính";
 "Select" = "Chọn";
-"Save Changes" = "Lưu thay đổi";
+"Save Changes" = "Lưu Thay Đổi";
 
 // ChatView
-"Unfriend?" = "Xoá bạn?";
+"Unfriend?" = "Xoá Bạn?";
 "Cancel" = "Huỷ";
 "Remove" = "Xoá";
 "Are you sure you want to remove this friend?" = "Bạn có chắc muốn xoá bạn không?";
-"Message..." = "Tin nhắn...";
+"message..." = "tin nhắn...";
 "Send" = "Gửi";
-"Remove Friend" = "Xoá bạn";
-"Accept" = "Chấp nhận";
-"Decline" = "Từ chối";
-"Send Friend Request" = "Gửi lời mời kết bạn";
-"Friend Request Sent" = "Đã gửi lời mời kết bạn";
+"Remove Friend" = "Xoá Bạn";
+"Accept" = "Chấp Nhận";
+"Decline" = "Từ Chối";
+"Send Friend Request" = "Gửi Lời Mời Kết Bạn";
+"Friend Request Sent" = "Đã Gửi Lời Mời Kết Bạn";
 
 // SettingsView
-"Appearance" = "Giao diện";
+"Appearance" = "Giao Diện";
 "Language" = "Ngôn ngữ";
-"Blocked Users" = "Danh sách chặn";
-"Log Out" = "Đăng xuất";
-"Delete Account" = "Xoá tài khoản";
-"Settings" = "Cài đặt";
+"Log Out" = "Đăng Xuất";
+"Delete Account" = "Xoá Tài Khoản";
+"Settings" = "Cài Đặt";
 "System" = "Theo hệ thống";
 "Light" = "Sáng";
 "Dark" = "Tối";
-"Legal" = "Pháp lý";
+"Legal" = "Pháp Lý";
 
 // FriendsListView
 "Search friends..." = "Tìm kiếm bạn bè...";

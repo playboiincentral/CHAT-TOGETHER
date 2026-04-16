@@ -134,7 +134,8 @@ class ChatViewModel: ObservableObject {
                         text: doc["text"] as? String ?? "",
                         createdAt: timestamp?.dateValue(),
                         reaction: doc["reaction"] as? String,
-                        isAI: isAI
+                        isAI: isAI,
+                        roomId: self.room.roomId
                     )
                 }
             }

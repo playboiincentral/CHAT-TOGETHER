@@ -53,7 +53,9 @@ final class AuthService {
                 gender: nil,
                 bio: nil,
                 avatar: user.photoURL?.absoluteString,
-                createdAt: Date()
+                createdAt: Date(),
+                status: .active,
+                isAdmin: false
             )
             
             try docRef.setData(from: newUser)

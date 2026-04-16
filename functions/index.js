@@ -4,6 +4,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
+const { HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const vision = require("@google-cloud/vision");
@@ -829,4 +830,222 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
     await admin.storage().bucket(bucketName).file(filePath).delete();
     console.log("Deleted unsafe image:", filePath);
   }
+});
+
+exports.banUser = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Unauthorized");
+
+  const adminId = request.auth.uid;
+  const { userId, duration } = request.data;
+
+  // =========================
+  // 1️⃣ CHECK ADMIN
+  // =========================
+  const adminSnap = await db.collection("users").doc(adminId).get();
+
+  const adminData = adminSnap.data();
+
+if (!adminSnap.exists || adminData?.isAdmin !== true) {
+  throw new HttpsError("permission-denied", "Forbidden");
+}
+
+  if (!userId) throw new HttpsError("invalid-argument", "Missing userId");
+
+  // =========================
+  // 2️⃣ LOGIC BAN (FIXED)
+  // =========================
+  let banType = "permanent";
+  let banUntil = null;
+
+  // duration > 0 => temporary ban
+  if (typeof duration === "number" && duration > 0) {
+    const now = Date.now();
+    banUntil = new Date(now + duration * 24 * 60 * 60 * 1000);
+    banType = "temporary";
+  }
+
+  // =========================
+  // 3️⃣ UPDATE USER
+  // =========================
+  await db.collection("users").doc(userId).update({
+    status: "banned",
+    banType,
+    banUntil
+  });
+
+  return {
+    success: true,
+    banType,
+    banUntil
+  };
+});
+
+exports.unbanUser = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Unauthorized");
+  }
+
+  const adminId = request.auth.uid;
+  const { userId } = request.data;
+
+  if (!userId) {
+    throw new HttpsError("invalid-argument", "Missing userId");
+  }
+
+  // ======================================================
+  // 1️⃣ CHECK ADMIN ROLE
+  // ======================================================
+  const adminSnap = await db.collection("users").doc(adminId).get();
+
+  const adminData = adminSnap.data();
+
+if (!adminSnap.exists || adminData?.isAdmin !== true) {
+  throw new HttpsError("permission-denied", "Forbidden");
+}
+
+  // ======================================================
+  // 2️⃣ UPDATE USER STATE
+  // ======================================================
+  const userRef = db.collection("users").doc(userId);
+
+  const userSnap = await userRef.get();
+  if (!userSnap.exists) {
+    throw new Error("User not found");
+  }
+
+  await userRef.update({
+    status: "active",
+    banType: admin.firestore.FieldValue.delete(),
+    banUntil: admin.firestore.FieldValue.delete(),
+    banReason: admin.firestore.FieldValue.delete()
+  });
+
+  return {
+    success: true,
+    message: "User unbanned successfully"
+  };
+});
+
+exports.autoUnbanUsers = onSchedule("every 10 minutes", async () => {
+  const now = new Date();
+
+  const snapshot = await db.collection("users")
+    .where("status", "==", "banned")
+    .where("banType", "==", "temporary")
+    .get();
+
+  const batch = db.batch();
+
+  snapshot.docs.forEach(doc => {
+    const data = doc.data();
+
+    if (!data.banUntil) return;
+
+    const banUntil = data.banUntil.toDate();
+
+    if (banUntil <= now) {
+      batch.update(doc.ref, {
+        status: "active",
+        banType: admin.firestore.FieldValue.delete(),
+        banUntil: admin.firestore.FieldValue.delete(),
+        banReason: admin.firestore.FieldValue.delete()
+      });
+    }
+  });
+
+  await batch.commit();
+});
+
+exports.deleteUser = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Unauthorized");
+
+  const adminId = request.auth.uid;
+  const { userId } = request.data;
+
+  if (!userId) throw new HttpsError("invalid-argument", "Missing userId");
+
+  // =========================
+  // 1️⃣ CHECK ADMIN
+  // =========================
+  const adminSnap = await db.collection("users").doc(adminId).get();
+
+  const adminData = adminSnap.data();
+
+if (!adminSnap.exists || adminData?.isAdmin !== true) {
+  throw new HttpsError("permission-denied", "Forbidden");
+}
+
+  // =========================
+  // 2️⃣ DELETE FRIENDSHIPS
+  // =========================
+  const friendships = await db.collection("friendships")
+    .where("users", "array-contains", userId)
+    .get();
+
+  for (const doc of friendships.docs) {
+    const users = doc.data().users || [];
+    const partnerId = users.find(u => u !== userId);
+
+    await doc.ref.delete();
+
+    // delete friend chat room
+    if (partnerId) {
+      const roomId = [userId, partnerId].sort().join("_");
+      const roomRef = db.collection("chatRooms").doc(roomId);
+      await deleteRoomWithMessages(roomRef);
+    }
+  }
+
+  // =========================
+  // 3️⃣ DELETE FRIEND REQUESTS
+  // =========================
+  const sent = await db.collection("friendRequests")
+    .where("fromUserId", "==", userId)
+    .get();
+
+  const received = await db.collection("friendRequests")
+    .where("toUserId", "==", userId)
+    .get();
+
+  const batch = db.batch();
+
+  sent.docs.forEach(doc => batch.delete(doc.ref));
+  received.docs.forEach(doc => batch.delete(doc.ref));
+
+  // =========================
+  // 4️⃣ DELETE BLOCKS
+  // =========================
+  const blocks1 = await db.collection("blocks")
+    .where("blockerId", "==", userId)
+    .get();
+
+  const blocks2 = await db.collection("blocks")
+    .where("blockedId", "==", userId)
+    .get();
+
+  blocks1.docs.forEach(doc => batch.delete(doc.ref));
+  blocks2.docs.forEach(doc => batch.delete(doc.ref));
+
+  // =========================
+  // 5️⃣ DELETE USER DOC
+  // =========================
+  batch.delete(db.collection("users").doc(userId));
+
+  await batch.commit();
+
+  // =========================
+  // 6️⃣ DELETE AVATAR (Storage)
+  // =========================
+  try {
+    await admin.storage().bucket().file(`avatars/${userId}.jpg`).delete();
+  } catch (e) {
+    console.log("No avatar found");
+  }
+
+  // =========================
+  // 7️⃣ DELETE AUTH USER
+  // =========================
+  await admin.auth().deleteUser(userId);
+
+  return { success: true };
 });

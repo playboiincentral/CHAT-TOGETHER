@@ -8,11 +8,13 @@
 import Foundation
 import FirebaseFirestore
 
-struct Message: Identifiable {
+struct Message: Identifiable, Codable {
     var id: String
     var senderId: String
     var text: String
     var createdAt: Date?
     var reaction: String?
     var isAI: Bool
+    
+    var roomId: String
 }
