@@ -120,7 +120,6 @@ class HomeViewModel: ObservableObject {
                     createdAt: data["createdAt"] as? Timestamp,
                     endedAt: data["endedAt"] as? Timestamp,
                     endedBy: data["endedBy"] as? String,
-                    hasReport: data["hasReport"] as? Bool ?? false,
                     lastActivityAt: data["lastActivityAt"] as? Timestamp
                 )
                 
@@ -178,7 +177,6 @@ class HomeViewModel: ObservableObject {
                     createdAt: data["createdAt"] as? Timestamp,
                     endedAt: data["endedAt"] as? Timestamp,
                     endedBy: data["endedBy"] as? String,
-                    hasReport: data["hasReport"] as? Bool ?? false,
                     lastActivityAt: data["lastActivityAt"] as? Timestamp
                 )
                 

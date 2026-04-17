@@ -58,7 +58,7 @@ struct ReportView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(viewModel.isValid ? Color.red : Color.gray)
+                        .background(viewModel.isValid ? Color.blue : Color.gray)
                         .opacity(viewModel.isSubmitting ? 0.7 : 1)
                         .foregroundColor(.white)
                         .cornerRadius(14)
@@ -141,8 +141,4 @@ struct ReportView: View {
         case .other: return "Other"
         }
     }
-}
-
-#Preview {
-    ReportView(roomId: "123", reporterId: "123", reportedUserId: "123")
 }

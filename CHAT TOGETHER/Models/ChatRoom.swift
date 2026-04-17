@@ -22,9 +22,7 @@ struct ChatRoom: Identifiable, Codable {
     var createdAt: Timestamp?
     var endedAt: Timestamp?
     var endedBy: String?
-    
-    var hasReport: Bool?
-    
+        
     var lastActivityAt: Timestamp?
     
     var lastMessage: String?

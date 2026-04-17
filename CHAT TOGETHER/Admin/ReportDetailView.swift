@@ -13,7 +13,9 @@ struct ReportDetailView: View {
     var report: ChatReport
     @Binding var isLoading: Bool
     
-    @State private var messages: [Message] = []
+    var messages: [ReportMessage] {
+        report.messages
+    }
     
     var body: some View {
         VStack {
@@ -36,13 +38,20 @@ struct ReportDetailView: View {
             Divider()
             
             // MARK: - Chat preview
-            List(messages) { message in
+            List(messages, id: \.createdAt) { message in
                 HStack {
                     if message.senderId == report.reportedUserId {
+                        Spacer()
                         Text(message.text)
-                            .foregroundColor(.red)
+                            .padding(8)
+                            .background(Color.blue.opacity(0.2))
+                            .cornerRadius(8)
                     } else {
                         Text(message.text)
+                            .padding(8)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
+                        Spacer()
                     }
                 }
             }
@@ -75,39 +84,11 @@ struct ReportDetailView: View {
             .padding()
         }
         .navigationTitle("Report Detail")
-        .onAppear {
-            loadMessages()
-        }
     }
 }
 
 extension ReportDetailView {
-    func loadMessages() {
-        Firestore.firestore().collection("messages")
-            .whereField("roomId", isEqualTo: report.roomId)
-            .order(by: "createdAt")
-            .limit(toLast: 50)
-            .getDocuments { snapshot, _ in
-                
-                guard let docs = snapshot?.documents else { return }
-                
-                DispatchQueue.main.async {
-                    self.messages = docs.compactMap { doc in
-                        let data = doc.data()
-
-                        return Message(
-                            id: doc.documentID,
-                            senderId: data["senderId"] as? String ?? "",
-                            text: data["text"] as? String ?? "",
-                            createdAt: (data["createdAt"] as? Timestamp)?.dateValue(),
-                            reaction: data["reaction"] as? String,
-                            isAI: data["isAI"] as? Bool ?? false,
-                            roomId: data["roomId"] as? String ?? ""
-                        )
-                    }
-                }
-            }
-    }
+    
 }
 
 extension ReportDetailView {

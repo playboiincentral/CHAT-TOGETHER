@@ -37,7 +37,15 @@ struct ChatReport: Identifiable, Codable {
     var reasons: [ReportReason]
     var description: String?
     
+    var messages: [ReportMessage]
+    
     var status: ReportStatus = .pending
     
+    var createdAt: Timestamp?
+}
+
+struct ReportMessage: Codable {
+    var senderId: String
+    var text: String
     var createdAt: Timestamp?
 }

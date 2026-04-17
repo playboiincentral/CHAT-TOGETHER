@@ -159,7 +159,6 @@ exports.joinQueue = onCall(async (request) => {
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           endedAt: null,
           endedBy: null,
-          hasReport: false,
           lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
           lastMessage: null,
           lastMessageSenderId: null,
@@ -303,7 +302,6 @@ exports.getOrCreateFriendRoom = onCall(async (request) => {
     type: "friend",
     status: "active",
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    hasReport: false,
     lastMessage: null,
     lastMessageSenderId: null,
     lastMessageAt: null,
@@ -356,8 +354,6 @@ exports.detectInactiveRooms = onSchedule(
 
 // =======================================================
 // 4️⃣ CLEANUP ENDED ROOMS
-//    - Xoá nếu không có report
-//    - Giữ lại nếu hasReport = true
 // =======================================================
 
 exports.cleanupEndedRooms = onSchedule(
@@ -370,7 +366,6 @@ exports.cleanupEndedRooms = onSchedule(
       .where("status", "==", "ended")
       .where("type", "==", "random")
       .where("endedAt", "<", twoMinutesAgo)
-      .where("hasReport", "==", false)
       .get();
 
     for (const doc of snapshot.docs) {
@@ -1048,4 +1043,77 @@ if (!adminSnap.exists || adminData?.isAdmin !== true) {
   await admin.auth().deleteUser(userId);
 
   return { success: true };
+});
+
+exports.createReportWithSnapshot = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Unauthorized");
+  }
+
+  const reporterId = request.auth.uid;
+  const { roomId, reportedUserId, reasons, description } = request.data;
+
+  if (!roomId || !reportedUserId) {
+    throw new HttpsError("invalid-argument", "Missing data");
+  }
+
+  const roomRef = db.collection("chatRooms").doc(roomId);
+  const roomSnap = await roomRef.get();
+
+  if (!roomSnap.exists) {
+    throw new HttpsError("not-found", "Room not found");
+  }
+
+  // =========================
+  // 🔒 CHECK USER IN ROOM (nên có)
+  // =========================
+  const roomData = roomSnap.data();
+  const users = roomData.users || [];
+
+  if (!users.includes(reporterId)) {
+    throw new HttpsError("permission-denied", "Not in this room");
+  }
+
+  // =========================
+  // 🔥 1. SNAPSHOT MESSAGES
+  // =========================
+  const messagesSnap = await roomRef
+    .collection("messages")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .get();
+
+  const messages = messagesSnap.docs.map(doc => {
+    const data = doc.data();
+    return {
+      senderId: data.senderId || "",
+      text: data.text || "",
+      createdAt: data.createdAt || null
+    };
+  }).reverse(); // đúng thứ tự thời gian
+
+  // =========================
+  // 🔥 2. CREATE REPORT
+  // =========================
+  const reportRef = db.collection("reports").doc();
+
+  await reportRef.set({
+    roomId,
+    reporterId,
+    reportedUserId,
+    reasons: reasons || [],
+    description: description || null,
+    messages, // 👈 snapshot
+    status: "pending",
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+  // =========================
+  // 🔥 3. MARK ROOM
+  // =========================
+
+  return {
+    success: true,
+    reportId: reportRef.id
+  };
 });

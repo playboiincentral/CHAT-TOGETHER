@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseCore
 import FirebaseFirestore
+import FirebaseFunctions
 
 class ReportViewModel: ObservableObject {
     
@@ -28,44 +29,33 @@ class ReportViewModel: ObservableObject {
             selectedReasons.insert(reason)
         }
     }
-    
+
     func submitReport(roomId: String, reporterId: String, reportedUserId: String) {
         
         guard isValid, !isSubmitting else { return }
         
         isSubmitting = true
+        errorMessage = nil
         
-        let report = ChatReport(
-            id: UUID().uuidString,
-            roomId: roomId,
-            reporterId: reporterId,
-            reportedUserId: reportedUserId,
-            reasons: Array(selectedReasons),
-            description: description.isEmpty ? nil : description,
-            status: .pending,
-            createdAt: Timestamp()
-        )
+        let functions = Functions.functions(region: "asia-southeast1")
         
-        do {
-            try Firestore.firestore()
-                .collection("reports")
-                .document(report.id)
-                .setData(from: report) { error in
+        functions.httpsCallable("createReportWithSnapshot")
+            .call([
+                "roomId": roomId,
+                "reportedUserId": reportedUserId,
+                "reasons": selectedReasons.map { $0.rawValue },
+                "description": description.isEmpty ? nil : description
+            ]) { result, error in
+                
+                DispatchQueue.main.async {
+                    self.isSubmitting = false
                     
-                    DispatchQueue.main.async {
-                        self.isSubmitting = false
-                        
-                        if let error = error {
-                            self.errorMessage = error.localizedDescription
-                        } else {
-                            self.isSuccess = true
-                        }
+                    if let error = error {
+                        self.errorMessage = error.localizedDescription
+                    } else {
+                        self.isSuccess = true
                     }
                 }
-            
-        } catch {
-            isSubmitting = false
-            print("❌ Encoding error:", error.localizedDescription)
-        }
+            }
     }
 }
