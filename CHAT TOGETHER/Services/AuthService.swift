@@ -38,7 +38,7 @@ final class AuthService {
         try await saveUserToFirestore(authResult.user)
     }
     
-    private func saveUserToFirestore(_ user: User) async throws {
+    func saveUserToFirestore(_ user: User) async throws {
         
         let docRef = db.collection("users").document(user.uid)
         
