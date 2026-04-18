@@ -77,6 +77,7 @@ struct ChatView: View {
             }
             .navigationBarBackButtonHidden(true)
             .onAppear {
+                viewModel.messages = []
                 viewModel.handleOnAppear()
             }
             .onChange(of: viewModel.shouldDismiss) { value in

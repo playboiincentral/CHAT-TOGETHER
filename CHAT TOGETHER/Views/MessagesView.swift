@@ -27,10 +27,10 @@ struct MessagesView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
                                 Button {
-                                        selectedTab = 1
-                                    } label: {
-                                        RequestsCard(count: relationManager.receivedRequests.count)
-                                    }
+                                    selectedTab = 1
+                                } label: {
+                                    RequestsCard(count: relationManager.receivedRequests.count)
+                                }
                                 ForEach(friendsVM.friendsWithoutRoom) { friend in
                                     Button {
                                         openChat(with: friend)
@@ -63,7 +63,7 @@ struct MessagesView: View {
                             Button {
                                 selectedRoom = room
                                 triggeredByUser = true
-                                    showChat = true
+                                showChat = true
                             } label: {
                                 MessageCard(
                                     room: room,
@@ -102,41 +102,60 @@ struct MessagesView: View {
         
         isLoading = true
         
-        let functions = Functions.functions(region: "asia-southeast1")
+        // 🔥 deterministic roomId
+        let sorted = [currentUserId, friendId].sorted()
+        let roomId = sorted.joined(separator: "_")
         
-        functions.httpsCallable("getOrCreateFriendRoom")
-            .call(["friendId": friendId]) { result, error in
+        let roomRef = Firestore.firestore()
+            .collection("chatRooms")
+            .document(roomId)
+        
+        roomRef.getDocument { snapshot, error in
+            
+            // ❌ fallback nếu lỗi mạng → vẫn mở chat
+            if let snapshot = snapshot,
+               snapshot.exists,
+               let room = try? snapshot.data(as: ChatRoom.self) {
                 
-                if let error = error {
-                    print("Error:", error.localizedDescription)
+                DispatchQueue.main.async {
+                    selectedRoom = room
+                    triggeredByUser = true
+                    showChat = true
                     isLoading = false
-                    return
                 }
                 
-                guard let data = result?.data as? [String: Any],
-                      let roomId = data["roomId"] as? String else {
-                    isLoading = false
-                    return
-                }
-                
-                // 🔥 FETCH REAL ROOM
-                Firestore.firestore()
-                    .collection("chatRooms")
-                    .document(roomId)
-                    .getDocument { snapshot, _ in
-                        
-                        guard let snapshot = snapshot else { return }
-                        
-                        do {
-                            let room = try snapshot.data(as: ChatRoom.self)
-                            selectedRoom = room
-                            triggeredByUser = true
-                            showChat = true
-                        } catch {
-                            print(error)
-                        }
-                    }
+                return
             }
+            
+            // ✅ nếu chưa có room → tạo TEMP ROOM đúng model ChatRoom
+            let tempRoom = ChatRoom(
+                id: roomId,
+                users: sorted,
+                type: .friend,
+                status: .active,
+                createdAt: nil,
+                lastMessage: nil,
+                lastMessageSenderId: nil,
+                lastMessageAt: nil,
+                lastReadAt: nil
+            )
+            
+            DispatchQueue.main.async {
+                selectedRoom = tempRoom
+                triggeredByUser = true
+                showChat = true
+                isLoading = false
+            }
+            
+            // 🔥 tạo room backend song song (không block UI)
+            Functions.functions(region: "asia-southeast1")
+                .httpsCallable("getOrCreateFriendRoom")
+                .call(["friendId": friendId]) { _, error in
+                    if let error = error {
+                        print("create room error:", error)
+                    }
+                }
+        }
     }
 }
 

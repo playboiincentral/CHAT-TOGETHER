@@ -11,12 +11,14 @@ class ChatViewModel: ObservableObject {
     @Published var shouldDismiss = false
     @Published var showPartnerLeftAlert = false
     @Published var partner: AppUser?
+    @Published var isRoomReady = false
     @Published var showUnfriendAlert = false
     private var friendshipListener: ListenerRegistration?
     private var partnerListener: ListenerRegistration?
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
-    
+    private var hasReceivedFirstRoomSnapshot = false
+    private var pendingMessages: [String] = []
     @Published var room: ChatRoom
     private var heartbeatTimer: Timer?
     
@@ -28,6 +30,9 @@ class ChatViewModel: ObservableObject {
     
     init(room: ChatRoom) {
         self.room = room
+        self.isRoomActive = true
+        self.hasReceivedFirstRoomSnapshot = false
+        self.messages = []
         fetchPartner()
         listenMessages()
         listenRoomStatus()
@@ -119,25 +124,32 @@ class ChatViewModel: ObservableObject {
             .document(room.roomId)
             .collection("messages")
             .order(by: "createdAt")
-            .addSnapshotListener { snapshot, _ in
+            .addSnapshotListener(includeMetadataChanges: true) { snapshot, _ in
                 
-                guard let documents = snapshot?.documents else { return }
+                guard let snapshot = snapshot else { return }
+                
+                // ❗ BỎ QUA CACHE
+                if snapshot.metadata.isFromCache {
+                    return
+                }
+                
+                let documents = snapshot.documents
                 
                 DispatchQueue.main.async {
-                self.messages = documents.map { doc in
-                    
-                    let timestamp = doc["createdAt"] as? Timestamp
-                    let isAI = doc["isAI"] as? Bool ?? false
-                    return Message(
-                        id: doc.documentID,
-                        senderId: doc["senderId"] as? String ?? "",
-                        text: doc["text"] as? String ?? "",
-                        createdAt: timestamp?.dateValue(),
-                        reaction: doc["reaction"] as? String,
-                        isAI: isAI
-                    )
+                    self.messages = documents.map { doc in
+                        let timestamp = doc["createdAt"] as? Timestamp
+                        let isAI = doc["isAI"] as? Bool ?? false
+                        
+                        return Message(
+                            id: doc.documentID,
+                            senderId: doc["senderId"] as? String ?? "",
+                            text: doc["text"] as? String ?? "",
+                            createdAt: timestamp?.dateValue(),
+                            reaction: doc["reaction"] as? String,
+                            isAI: isAI
+                        )
+                    }
                 }
-            }
             }
     }
     
@@ -145,12 +157,34 @@ class ChatViewModel: ObservableObject {
         
         roomListener = db.collection("chatRooms")
             .document(room.roomId)
-            .addSnapshotListener { [weak self] snapshot, _ in
+            .addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, _ in
                 
                 guard let self = self else { return }
+                guard let snapshot = snapshot else { return }
                 
-                // 🔥 1. ROOM BỊ XOÁ
-                if snapshot == nil || snapshot?.exists == false {
+                // ❗ 1. BỎ CACHE
+                if snapshot.metadata.isFromCache {
+                    return
+                }
+                
+                // ❗ 2. IGNORE SNAPSHOT ĐẦU (CỰC QUAN TRỌNG)
+                if !self.hasReceivedFirstRoomSnapshot {
+                    self.hasReceivedFirstRoomSnapshot = true
+                    
+                    if snapshot.exists,
+                       let updatedRoom = try? snapshot.data(as: ChatRoom.self) {
+                        DispatchQueue.main.async {
+                            self.room = updatedRoom
+                            self.isRoomReady = true
+                            self.flushPendingMessages()
+                        }
+                    }
+                    
+                    return
+                }
+                
+                // 🔥 3. ROOM BỊ XOÁ
+                if !snapshot.exists {
                     
                     guard self.isRoomActive else { return }
                     
@@ -158,34 +192,32 @@ class ChatViewModel: ObservableObject {
                         self.isRoomActive = false
                         self.stopHeartbeat()
                         
-                        // ❗ HIỆN ALERT
                         self.showPartnerLeftAlert = true
-                        
-                        // ❗ cleanup nhưng KHÔNG dismiss
                         self.cleanupAfterBlock()
                     }
                     
                     return
                 }
                 
-                // 🔥 2. NORMAL FLOW
-                guard let data = snapshot?.data() else { return }
+                // 🔥 4. NORMAL FLOW
+                guard let data = snapshot.data() else { return }
                 
-                do {
-                    let updatedRoom = try snapshot!.data(as: ChatRoom.self)
+                if let updatedRoom = try? snapshot.data(as: ChatRoom.self) {
                     DispatchQueue.main.async {
                         self.room = updatedRoom
+                        
+                        if !self.isRoomReady {
+                                                self.isRoomReady = true
+                                                self.flushPendingMessages()
+                                            }
                     }
-                } catch {
-                    print("Decode room error:", error)
                 }
                 
                 let status = data["status"] as? String ?? ""
                 let endedBy = data["endedBy"] as? String
                 
-                if status == "ended" {
-                    
-                    guard self.isRoomActive else { return }
+                // 🔥 5. HANDLE ENDED
+                if status == "ended" && self.isRoomActive {
                     
                     DispatchQueue.main.async {
                         self.isRoomActive = false
@@ -205,44 +237,70 @@ class ChatViewModel: ObservableObject {
             }
     }
     
+    private func flushPendingMessages() {
+        pendingMessages.forEach { text in
+            actuallySend(text)
+        }
+        pendingMessages.removeAll()
+    }
+    
     // MARK: - Send message
-
+    
     func sendMessage() {
-        guard let currentUserId = userId else { return }
         let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        guard isRoomActive else { return }
-        
-        let isAI = trimmed.range(of: "@tomi", options: .caseInsensitive) != nil
-        
+
         messageText = ""
-        
+
+        guard isRoomActive else {
+            print("Room is not active")
+            return
+        }
+
+        // 🔥 room chưa ready → queue
+        if !isRoomReady {
+            pendingMessages.append(trimmed)
+            return
+        }
+
+        actuallySend(trimmed)
+    }
+    
+    private func actuallySend(_ text: String) {
+        guard let currentUserId = userId else { return }
+
         let roomRef = db.collection("chatRooms").document(room.roomId)
         let messageRef = roomRef.collection("messages").document()
-        
+
         let batch = db.batch()
-        
+
+        // 🔹 message
         batch.setData([
             "senderId": currentUserId,
-            "text": trimmed,
+            "text": text,
             "createdAt": FieldValue.serverTimestamp(),
             "reaction": NSNull(),
-            "isAITrigger": isAI
+            "isAITrigger": text.range(of: "@tomi", options: .caseInsensitive) != nil
         ], forDocument: messageRef)
-        
+
+        // 🔹 room update
         var updateData: [String: Any] = [
             "lastActivityAt": FieldValue.serverTimestamp()
         ]
-        
+
         if room.type == .friend {
-            updateData["lastMessage"] = trimmed
+            updateData["lastMessage"] = text
             updateData["lastMessageSenderId"] = currentUserId
             updateData["lastMessageAt"] = FieldValue.serverTimestamp()
         }
-        
+
         batch.updateData(updateData, forDocument: roomRef)
-        
-        batch.commit()
+
+        batch.commit { error in
+            if let error = error {
+                print("Send message error:", error.localizedDescription)
+            }
+        }
     }
     
     // MARK: - Leave room
@@ -361,6 +419,8 @@ class ChatViewModel: ObservableObject {
     }
     
     func cleanupAfterBlock() {
+        isRoomActive = false
+        
         listener?.remove()
         listener = nil
         
