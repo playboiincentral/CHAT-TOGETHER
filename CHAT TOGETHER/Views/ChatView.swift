@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseFunctions
 
 struct ChatView: View {
     @Environment(\.dismiss) var dismiss
@@ -487,15 +486,18 @@ struct ChatView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.partner?.uid else { return }
-        guard !isProcessing else { return }
 
-        isProcessing = true
+        // 🚀 1. Update UI ngay
+        relationManager.removeFriendLocally(with: partnerId)
         
+        // 🚀 2. Call backend
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
+            
             DispatchQueue.main.async {
-                isProcessing = false
-                if success {
-                    
+                
+                if !success {
+                    // ❗ rollback
+                    relationManager.rollbackRemoveFriend(with: partnerId)
                 }
             }
         }
@@ -520,32 +522,62 @@ struct ChatView: View {
     
     private func sendOrCancelRequest() {
         guard let partnerId = viewModel.partner?.uid else { return }
-        
+                
+        // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
-            UserRelationService.shared.cancelFriendRequest(to: partnerId) { _ in }
+            
+            // optimistic
+            relationManager.cancelRequestLocally(to: partnerId)
+            
+            UserRelationService.shared.cancelFriendRequest(to: partnerId) { success in
+                DispatchQueue.main.async {
+                    
+                    if !success {
+                        // rollback
+                        relationManager.rollbackCancelRequest(to: partnerId)
+                    }
+                }
+            }
+            
         } else {
-            UserRelationService.shared.sendFriendRequest(to: partnerId) { _ in }
+            
+            // 🚀 CASE 2: SEND REQUEST
+            
+            // optimistic
+            relationManager.sendRequestLocally(to: partnerId)
+            
+            UserRelationService.shared.sendFriendRequest(to: partnerId) { success in
+                DispatchQueue.main.async {
+                    
+                    if !success {
+                        // rollback
+                        relationManager.rollbackSendRequest(to: partnerId)
+                    }
+                }
+            }
         }
     }
     
     func acceptRequest() {
         guard let partnerId = viewModel.partner?.uid,
               let requestId = relationManager.requestId(from: partnerId) else { return }
-        
-        let data: [String: Any] = [
-            "partnerId": partnerId,
-            "requestId": requestId
-        ]
-        
-        Functions.functions(region: "asia-southeast1")
-            .httpsCallable("acceptFriendRequest")
-            .call(data) { result, error in
                 
-                if let error = error {
-                    print("Accept error:", error.localizedDescription)
-                    return
+        // 🚀 1. UPDATE UI NGAY (optimistic)
+        relationManager.markAsFriendLocally(with: partnerId)
+        
+        // 🚀 2. Gọi backend
+        UserRelationService.shared.acceptFriendRequest(
+            requestId: requestId,
+            partnerId: partnerId
+        ) { success in
+            
+            DispatchQueue.main.async {
+                if !success {
+                    // ❗ rollback nếu fail
+                    relationManager.rollbackFriendState(with: partnerId)
                 }
             }
+        }
     }
     
     private func declineRequest() {
@@ -611,7 +643,7 @@ struct MessageRow: View {
     var isAI: Bool {
         message.senderId == "AI"
     }
-        
+    
     var body: some View {
         VStack(spacing: 4) {
             
@@ -622,23 +654,23 @@ struct MessageRow: View {
                     bubble
                 } else {
                     Group {
-                    if let partner = partner, showAvatar {
-                        AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            Circle().fill(Color.gray.opacity(0.3))
+                        if let partner = partner, showAvatar {
+                            AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                Circle().fill(Color.gray.opacity(0.3))
+                            }
+                            .frame(width: 38, height: 38)
+                            .clipShape(Circle())
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                onTapAvatar(partner)
+                            }
+                        } else {
+                            Color.clear
+                                .frame(width: 38)
                         }
-                        .frame(width: 38, height: 38)
-                        .clipShape(Circle())
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            onTapAvatar(partner)
-                        }
-                    } else {
-                        Color.clear
-                            .frame(width: 38)
                     }
-                }
                     bubble
                     Spacer()
                 }

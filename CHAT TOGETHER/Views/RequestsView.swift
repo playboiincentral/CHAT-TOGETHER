@@ -152,10 +152,20 @@ extension RequestsView {
     func accept(userId: String) {
         guard let requestId = relationManager.requestId(from: userId) else { return }
         
+        relationManager.markAsFriendLocally(with: userId)
+        
         UserRelationService.shared.acceptFriendRequest(
             requestId: requestId,
             partnerId: userId
-        ) { _ in }
+        ) { success in
+            
+            DispatchQueue.main.async {
+                if !success {
+                    // ❗ rollback nếu fail
+                    relationManager.rollbackFriendState(with: userId)
+                }
+            }
+        }
     }
     
     func reject(userId: String) {
@@ -167,9 +177,17 @@ extension RequestsView {
     }
     
     func cancelRequest(userId: String) {
-        UserRelationService.shared.cancelFriendRequest(
-            to: userId
-        ) { _ in }
+        relationManager.cancelRequestLocally(to: userId)
+        
+        UserRelationService.shared.cancelFriendRequest(to: userId) { success in
+            DispatchQueue.main.async {
+                
+                if !success {
+                    // rollback
+                    relationManager.rollbackCancelRequest(to: userId)
+                }
+            }
+        }
     }
     
     func showToast(_ message: String) {

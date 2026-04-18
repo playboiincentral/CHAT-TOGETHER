@@ -14,6 +14,8 @@ class UserRelationService {
         Auth.auth().currentUser?.uid
     }
     
+    private let functions = Functions.functions(region: "asia-southeast1")
+    
     // MARK: - SEND FRIEND REQUEST
     func sendFriendRequest(
         to partnerId: String,
@@ -27,7 +29,7 @@ class UserRelationService {
         
         let requestsRef = db.collection("friendRequests")
         
-        // 1️⃣ Check nếu partner đã gửi cho mình → auto accept
+        // 1️⃣ Nếu partner đã gửi → accept bằng Cloud Function
         requestsRef
             .whereField("fromUserId", isEqualTo: partnerId)
             .whereField("toUserId", isEqualTo: currentUserId)
@@ -55,7 +57,7 @@ class UserRelationService {
                             return
                         }
                         
-                        // 3️⃣ Tạo request mới
+                        // 3️⃣ Tạo request
                         let data: [String: Any] = [
                             "fromUserId": currentUserId,
                             "toUserId": partnerId,
@@ -98,37 +100,29 @@ class UserRelationService {
             }
     }
     
-    // MARK: - ACCEPT REQUEST
+    // MARK: - ACCEPT REQUEST (🔥 FIXED: CALL CLOUD FUNCTION)
     func acceptFriendRequest(
         requestId: String,
         partnerId: String,
         completion: @escaping (Bool) -> Void
     ) {
-        guard let currentUserId = currentUserId else {
-            completion(false)
-            return
-        }
+        let data: [String: Any] = [
+            "requestId": requestId,
+            "partnerId": partnerId
+        ]
         
-        let batch = db.batch()
-        
-        let sortedUsers = [currentUserId, partnerId].sorted()
-        let friendshipId = sortedUsers.joined(separator: "_")
-        
-        let requestRef = db.collection("friendRequests").document(requestId)
-        let friendshipRef = db.collection("friendships").document(friendshipId)
-        
-        // tạo friendship
-        batch.setData([
-            "users": sortedUsers,
-            "createdAt": Timestamp()
-        ], forDocument: friendshipRef)
-        
-        // xoá request
-        batch.deleteDocument(requestRef)
-        
-        batch.commit { error in
-            completion(error == nil)
-        }
+        functions
+            .httpsCallable("acceptFriendRequest")
+            .call(data) { result, error in
+                
+                if let error = error as NSError? {
+                    print("Accept error:", error.localizedDescription)
+                    completion(false)
+                    return
+                }
+                
+                completion(true)
+            }
     }
     
     // MARK: - DECLINE REQUEST
@@ -152,7 +146,7 @@ class UserRelationService {
             "partnerId": partnerId
         ]
         
-        Functions.functions(region: "asia-southeast1")
+        functions
             .httpsCallable("removeFriend")
             .call(data) { result, error in
                 
@@ -166,7 +160,7 @@ class UserRelationService {
             }
     }
     
-    // MARK: - BLOCK USER (reuse của bạn)
+    // MARK: - BLOCK USER
     func blockUser(
         targetUserId: String,
         completion: @escaping (Bool) -> Void
@@ -175,7 +169,7 @@ class UserRelationService {
             "blockedId": targetUserId
         ]
         
-        Functions.functions(region: "asia-southeast1")
+        functions
             .httpsCallable("blockUser")
             .call(data) { result, error in
                 

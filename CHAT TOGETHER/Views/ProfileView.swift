@@ -289,16 +289,15 @@ struct ProfileView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.user?.uid else { return }
-        guard !isProcessing else { return }
-        
-        isProcessing = true
+                
+        relationManager.removeFriendLocally(with: partnerId)
         
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             DispatchQueue.main.async {
-                isProcessing = false
                 
-                if success {
-                    
+                if !success {
+                    // ❗ rollback
+                    relationManager.rollbackRemoveFriend(with: partnerId)
                 }
             }
         }
@@ -323,22 +322,61 @@ struct ProfileView: View {
     
     private func sendOrCancelRequest() {
         guard let partnerId = viewModel.user?.uid else { return }
-        
+
+        // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
-            UserRelationService.shared.cancelFriendRequest(to: partnerId) { _ in }
+            
+            // optimistic
+            relationManager.cancelRequestLocally(to: partnerId)
+            
+            UserRelationService.shared.cancelFriendRequest(to: partnerId) { success in
+                DispatchQueue.main.async {
+                    
+                    if !success {
+                        // rollback
+                        relationManager.rollbackCancelRequest(to: partnerId)
+                    }
+                }
+            }
+            
         } else {
-            UserRelationService.shared.sendFriendRequest(to: partnerId) { _ in }
+            
+            // 🚀 CASE 2: SEND REQUEST
+            
+            // optimistic
+            relationManager.sendRequestLocally(to: partnerId)
+            
+            UserRelationService.shared.sendFriendRequest(to: partnerId) { success in
+                DispatchQueue.main.async {
+                    
+                    if !success {
+                        // rollback
+                        relationManager.rollbackSendRequest(to: partnerId)
+                    }
+                }
+            }
         }
     }
+
     
     private func acceptRequest() {
         guard let partnerId = viewModel.user?.uid,
               let requestId = relationManager.requestId(from: partnerId) else { return }
         
+        relationManager.markAsFriendLocally(with: partnerId)
+
         UserRelationService.shared.acceptFriendRequest(
             requestId: requestId,
             partnerId: partnerId
-        ) { _ in }
+        ) { success in
+            
+            DispatchQueue.main.async {
+                if !success {
+                    // ❗ rollback nếu fail
+                    relationManager.rollbackFriendState(with: partnerId)
+                }
+            }
+        }
     }
     
     private func declineRequest() {

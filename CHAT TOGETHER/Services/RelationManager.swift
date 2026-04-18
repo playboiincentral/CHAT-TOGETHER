@@ -123,4 +123,38 @@ class RelationManager: ObservableObject {
             users[user.id] = user
         }
     }
+    
+    func markAsFriendLocally(with userId: String) {
+        friends.insert(userId)
+        receivedRequests.removeValue(forKey: userId)
+    }
+
+    func rollbackFriendState(with userId: String) {
+        friends.remove(userId)
+        // optional: add lại request nếu cần
+    }
+    
+    func removeFriendLocally(with userId: String) {
+        friends.remove(userId)
+    }
+    
+    func rollbackRemoveFriend(with userId: String) {
+        friends.insert(userId)
+    }
+    
+    func sendRequestLocally(to userId: String) {
+        sentRequests.insert(userId)
+    }
+    
+    func cancelRequestLocally(to userId: String) {
+        sentRequests.remove(userId)
+    }
+    
+    func rollbackSendRequest(to userId: String) {
+        sentRequests.remove(userId)
+    }
+    
+    func rollbackCancelRequest(to userId: String) {
+        sentRequests.insert(userId)
+    }
 }
