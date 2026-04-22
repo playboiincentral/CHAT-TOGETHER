@@ -724,78 +724,127 @@ exports.onMessageCreated = onDocumentCreated(
   },
   async (event) => {
     const data = event.data.data();
-
-    if (!data || data.isAI) return;
-    if (!data.text) return;
+    if (!data || data.isAI || !data.text) return;
 
     const mentionRegex = /@tomi\b/i;
 
-    // ❌ không gọi Tomi → ignore
+    // ❌ Không mention → bỏ
     if (!mentionRegex.test(data.text)) return;
 
-    // 🔥 remove @Tomi
+    // 🔥 Clean message hiện tại
     const prompt = data.text.replace(mentionRegex, "").trim();
     if (!prompt) return;
 
+    const roomId = event.params.roomId;
+
     try {
-  await new Promise(res => setTimeout(res, 500 + Math.random() * 1000));
+      // 🔹 Lấy history (15 tin gần nhất)
+      const snap = await admin.firestore()
+        .collection("chatRooms")
+        .doc(roomId)
+        .collection("messages")
+        .orderBy("createdAt", "desc")
+        .limit(15)
+        .get();
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${openaiKey.value()}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content: `
-You are Tomi, a Gen Z chat buddy.
-- Reply short
-- Casual like texting
-- Use emoji sometimes
-- Reply in same language as user (Vietnamese or English)
-`
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
-    })
-  });
+      // 🔹 Convert sang format OpenAI
+      const history = [];
 
-  // ❗ check lỗi thật
-  if (!response.ok) {
-    const err = await response.text();
-    console.error("OpenAI error:", err);
-    return;
-  }
+snap.docs.reverse().forEach(doc => {
+  const msg = doc.data();
+  if (!msg.text) return;
 
-  const json = await response.json();
-
-  console.log("AI RAW:", JSON.stringify(json, null, 2));
-
-  const aiText =
-    json.output?.[0]?.content?.[0]?.text ||
-    "Tomi bị lag rồi 😵";
-
-  await admin.firestore()
-    .collection("chatRooms")
-    .doc(event.params.roomId)
-    .collection("messages")
-    .add({
-      senderId: "Tomi",
-      text: aiText,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isAI: true
+  if (msg.isAI) {
+    history.push({
+      role: "assistant",
+      content: msg.text
     });
+  } else {
+    const name = msg.senderName || "Unknown";
 
-} catch (error) {
-  console.error("AI error:", error);
+    history.push({
+      role: "user",
+      content: `[${name}]: ${msg.text}`
+    });
+  }
+});
+
+// 🔥 replace message cuối bằng prompt đã clean
+if (history.length > 0) {
+  const last = history[history.length - 1];
+
+  if (last.role === "user") {
+    const name = data.senderName || "Unknown";
+    last.content = `[${name}]: ${prompt}`;
+  }
 }
+
+      // 🔹 Delay nhẹ cho tự nhiên
+      await new Promise(res => setTimeout(res, 500 + Math.random() * 1000));
+
+      // 🔹 Call OpenAI
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openaiKey.value()}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-5.4-mini",
+          input: [
+            {
+  role: "system",
+  content: `
+You are Tomi in a group chat.
+
+- Multiple users are talking
+- Always reply to the LAST user message
+- Reply like a normal chat message
+- You can mention other users naturally if needed
+- Keep replies short, casual, Gen Z style
+- Reply in same language as the conversation
+`
+},
+            ...history
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("OpenAI error:", err);
+        return;
+      }
+
+      const json = await response.json();
+
+      let aiText = "Tomi bị lag rồi 😵";
+
+      if (
+        json.output &&
+        json.output[0] &&
+        json.output[0].content &&
+        json.output[0].content[0] &&
+        json.output[0].content[0].text
+      ) {
+        aiText = json.output[0].content[0].text;
+      }
+
+      // 🔹 Gửi lại message AI
+      await admin.firestore()
+        .collection("chatRooms")
+        .doc(roomId)
+        .collection("messages")
+        .add({
+          senderId: "Tomi",
+          text: aiText,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          isAI: true
+        });
+
+    } catch (error) {
+      console.error("AI error:", error);
+    }
   }
 );
 

@@ -115,7 +115,7 @@ struct HomeView: View {
                 Spacer()
             }
             .fullScreenCover(item: $viewModel.currentRoom) { room in
-                ChatView(room: room)
+                ChatView(room: room, currentUserManager: currentUser)
             }
             .sheet(isPresented: $showProfileSheet) {
                 if let user = currentUser.currentUser {

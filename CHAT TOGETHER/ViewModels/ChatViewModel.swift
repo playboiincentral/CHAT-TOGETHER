@@ -27,22 +27,26 @@ class ChatViewModel: ObservableObject {
     }
     
     private var roomListener: ListenerRegistration?
+    private let currentUserManager: CurrentUserManager
     
-    init(room: ChatRoom) {
-        self.room = room
-        self.isRoomActive = true
-        self.hasReceivedFirstRoomSnapshot = false
-        self.messages = []
-        fetchPartner()
-        listenMessages()
-        listenRoomStatus()
-        
-        if room.type == .random {
-            startHeartbeat()
+    init(room: ChatRoom, currentUserManager: CurrentUserManager) {
+            self.room = room
+            self.currentUserManager = currentUserManager
+            
+            self.isRoomActive = true
+            self.hasReceivedFirstRoomSnapshot = false
+            self.messages = []
+            
+            fetchPartner()
+            listenMessages()
+            listenRoomStatus()
+            
+            if room.type == .random {
+                startHeartbeat()
+            }
+            
+            listenFriendship()
         }
-        
-        listenFriendship()
-    }
     
     deinit {
         if room.type == .random {
@@ -143,6 +147,7 @@ class ChatViewModel: ObservableObject {
                         return Message(
                             id: doc.documentID,
                             senderId: doc["senderId"] as? String ?? "",
+                            senderName: doc["senderName"] as? String ?? "Unknown",
                             text: doc["text"] as? String ?? "",
                             createdAt: timestamp?.dateValue(),
                             reaction: doc["reaction"] as? String,
@@ -271,12 +276,14 @@ class ChatViewModel: ObservableObject {
 
         let roomRef = db.collection("chatRooms").document(room.roomId)
         let messageRef = roomRef.collection("messages").document()
-
+        let currentUserName = currentUserManager.currentUser?.fullname ?? "User"
+        
         let batch = db.batch()
 
         // 🔹 message
         batch.setData([
             "senderId": currentUserId,
+            "senderName": currentUserName,
             "text": text,
             "createdAt": FieldValue.serverTimestamp(),
             "reaction": NSNull(),

@@ -12,6 +12,7 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @State private var showRemoveFriendAlert = false
     @State private var isProcessing = false
+    @State private var isProcessing111 = false
     let isCurrentUser: Bool
     let roomId: String?
     
@@ -227,16 +228,22 @@ struct ProfileView: View {
                 if relationManager.isFriend(with: partnerId) {
                     
                     Button {
-                        showRemoveFriendAlert = true
-                    } label: {
-                        Text("Remove Friend")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                            .background(Color(.systemGray5))
-                            .cornerRadius(12)
-                    }
+                            showRemoveFriendAlert = true
+                        } label: {
+                            if isProcessing {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            } else {
+                                Text("Remove Friend")
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(12)
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
                     
@@ -289,15 +296,15 @@ struct ProfileView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.user?.uid else { return }
-                
-        relationManager.removeFriendLocally(with: partnerId)
+        guard !isProcessing else { return }
+        
+        isProcessing = true
         
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             DispatchQueue.main.async {
-                
+                isProcessing = false
                 if !success {
-                    // ❗ rollback
-                    relationManager.rollbackRemoveFriend(with: partnerId)
+                    print("Remove friend failed")
                 }
             }
         }

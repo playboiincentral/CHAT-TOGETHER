@@ -11,6 +11,7 @@ struct MessagesView: View {
     @State private var showChat = false
     @State private var triggeredByUser = false
     @EnvironmentObject var relationManager: RelationManager
+    @EnvironmentObject var currentUserManager: CurrentUserManager
     
     var body: some View {
         NavigationStack {
@@ -90,7 +91,7 @@ struct MessagesView: View {
                 triggeredByUser = false
             }) {
                 if let room = selectedRoom {
-                    ChatView(room: room)
+                    ChatView(room: room, currentUserManager: currentUserManager)
                 }
             }
         }

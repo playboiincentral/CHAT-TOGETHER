@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var relationManager: RelationManager
+    @EnvironmentObject var currentUserManager: CurrentUserManager
     @StateObject private var viewModel: ChatViewModel
     @State private var showLeaveAlert = false
     @State private var showProfile = false
@@ -14,9 +15,10 @@ struct ChatView: View {
     @State private var mentionQuery = ""
     @State private var hasScrolledToBottom = false
     @State private var isProcessing = false
+    @State private var isProcessing111 = false
     
-    init(room: ChatRoom) {
-        _viewModel = StateObject(wrappedValue: ChatViewModel(room: room))
+    init(room: ChatRoom, currentUserManager: CurrentUserManager) {
+        _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
     }
     
     // MARK: - Formatters
@@ -237,12 +239,17 @@ struct ChatView: View {
                 if relationManager.isFriend(with: partnerId) {
                     
                     Button {
-                        showRemoveFriendAlert = true
-                    } label: {
-                        Image(systemName: "person.fill.checkmark")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
-                    }
+                            showRemoveFriendAlert = true
+                        } label: {
+                            if isProcessing111 {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "person.fill.checkmark")
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .disabled(isProcessing111)
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
                     
@@ -486,18 +493,16 @@ struct ChatView: View {
     
     private func removeFriend() {
         guard let partnerId = viewModel.partner?.uid else { return }
-
-        // 🚀 1. Update UI ngay
-        relationManager.removeFriendLocally(with: partnerId)
+        guard !isProcessing else { return }
         
-        // 🚀 2. Call backend
+        isProcessing = true
+                
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             
             DispatchQueue.main.async {
-                
+                isProcessing = false
                 if !success {
-                    // ❗ rollback
-                    relationManager.rollbackRemoveFriend(with: partnerId)
+                    print("Remove friend failed")
                 }
             }
         }
@@ -654,21 +659,29 @@ struct MessageRow: View {
                     bubble
                 } else {
                     Group {
-                        if let partner = partner, showAvatar {
-                            AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
-                                image.resizable().scaledToFill()
-                            } placeholder: {
-                                Circle().fill(Color.gray.opacity(0.3))
+                        if showAvatar {
+                            if isAI {
+                                Image("logo1")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 38, height: 38)
+                                    .clipShape(Circle())
+                            } else if let partner = partner {
+                                AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Circle().fill(Color.gray.opacity(0.3))
+                                }
+                                .frame(width: 38, height: 38)
+                                .clipShape(Circle())
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    onTapAvatar(partner)
+                                }
+                            } else {
+                                Color.clear
+                                    .frame(width: 38)
                             }
-                            .frame(width: 38, height: 38)
-                            .clipShape(Circle())
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                onTapAvatar(partner)
-                            }
-                        } else {
-                            Color.clear
-                                .frame(width: 38)
                         }
                     }
                     bubble

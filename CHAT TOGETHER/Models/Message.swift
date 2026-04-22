@@ -11,6 +11,7 @@ import FirebaseFirestore
 struct Message: Identifiable, Codable {
     var id: String
     var senderId: String
+    var senderName: String
     var text: String
     var createdAt: Date?
     var reaction: String?
