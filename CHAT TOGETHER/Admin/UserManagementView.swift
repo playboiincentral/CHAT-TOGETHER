@@ -20,6 +20,7 @@ struct UserManagementView: View {
         }
         return users.filter {
             $0.fullname.lowercased().contains(searchText.lowercased()) ||
+            ($0.uid?.lowercased().contains(searchText.lowercased()) ?? false) ||
             $0.email.lowercased().contains(searchText.lowercased())
         }
     }
@@ -42,7 +43,7 @@ struct UserManagementView: View {
                             print("Sign out error:", error.localizedDescription)
                         }
                     } label: {
-                        Text("Logout")
+                        Text("Log Out")
                             .foregroundStyle(.primary)
                     }
                 }

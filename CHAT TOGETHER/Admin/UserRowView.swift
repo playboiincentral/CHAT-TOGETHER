@@ -29,6 +29,10 @@ struct UserRowView: View {
                     .foregroundColor(statusColor)
             }
             
+            Text(user.uid ?? "No ID")
+                .font(.caption2)
+                .foregroundColor(.gray)
+            
             Text(user.email)
                 .font(.caption)
                 .foregroundColor(.gray)

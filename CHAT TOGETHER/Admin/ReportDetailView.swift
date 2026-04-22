@@ -12,6 +12,8 @@ import FirebaseFunctions
 struct ReportDetailView: View {
     var report: ChatReport
     @Binding var isLoading: Bool
+    @State private var copiedReporter = false
+    @State private var copiedReported = false
     
     var messages: [ReportMessage] {
         report.messages
@@ -24,8 +26,65 @@ struct ReportDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Reason: \(report.reasons.map{$0.rawValue}.joined(separator: ", "))")
                 
-                Text("Reported User: \(report.reportedUserId)")
-                    .font(.caption)
+                HStack {
+                    Text("Reporter: \(report.reporterId)")
+                    Image(systemName: "doc.on.doc")
+                }
+                .font(.caption)
+                .onTapGesture {
+                    UIPasteboard.general.string = report.reporterId
+                    
+                    withAnimation {
+                        copiedReporter = true
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation {
+                            copiedReporter = false
+                        }
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    if copiedReporter {
+                        Text("Copied")
+                            .font(.caption2)
+                            .padding(4)
+                            .background(Color.black.opacity(0.7))
+                            .foregroundColor(.white)
+                            .cornerRadius(6)
+                            .transition(.opacity)
+                    }
+                }
+                
+                HStack {
+                    Text("Reported: \(report.reportedUserId)")
+                    Image(systemName: "doc.on.doc")
+                }
+                .font(.caption)
+                .onTapGesture {
+                    UIPasteboard.general.string = report.reportedUserId
+                    
+                    withAnimation {
+                        copiedReported = true
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation {
+                            copiedReported = false
+                        }
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    if copiedReported {
+                        Text("Copied")
+                            .font(.caption2)
+                            .padding(4)
+                            .background(Color.black.opacity(0.7))
+                            .foregroundColor(.white)
+                            .cornerRadius(6)
+                            .transition(.opacity)
+                    }
+                }
                 
                 if let desc = report.description {
                     Text(desc)
@@ -89,13 +148,9 @@ struct ReportDetailView: View {
 
 extension ReportDetailView {
     
-}
-
-extension ReportDetailView {
-    
     func banUser(days: Int) {
         isLoading = true
-
+        
         Functions.functions(region: "asia-southeast1").httpsCallable("banUser").call([
             "userId": report.reportedUserId,
             "duration": days
@@ -104,19 +159,19 @@ extension ReportDetailView {
             DispatchQueue.main.async {
                 self.isLoading = false
             }
-
+            
             if let error = error {
                 print("Ban error:", error)
                 return
             }
-
+            
             updateReportStatus(.resolved)
         }
     }
     
     func permanentBan() {
         isLoading = true
-
+        
         Functions.functions(region: "asia-southeast1").httpsCallable("banUser").call([
             "userId": report.reportedUserId,
             "duration": 0   // backend hiểu 0 = permanent
@@ -125,12 +180,12 @@ extension ReportDetailView {
             DispatchQueue.main.async {
                 self.isLoading = false
             }
-
+            
             if let error = error {
                 print("Permanent ban error:", error)
                 return
             }
-
+            
             updateReportStatus(.resolved)
         }
     }
