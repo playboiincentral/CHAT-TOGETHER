@@ -114,6 +114,12 @@ struct HomeView: View {
                 
                 Spacer()
             }
+            .fullScreenCover(isPresented: $viewModel.showWaitingView) {
+                WaitingView(
+                    currentUserAvatar: currentUser.currentUser?.avatar,
+                    partnerAvatar: viewModel.partnerAvatar
+                )
+            }
             .fullScreenCover(item: $viewModel.currentRoom) { room in
                 ChatView(room: room, currentUserManager: currentUser)
             }

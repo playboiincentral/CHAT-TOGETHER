@@ -18,6 +18,8 @@ class HomeViewModel: ObservableObject {
     @Published var isMatching = false
     @Published var elapsedSeconds = 0
     @Published var isCheckingRoom = true
+    @Published var showWaitingView = false
+    @Published var partnerAvatar: String?
     
     private var listener: ListenerRegistration?
     private var timer: Timer?
@@ -65,6 +67,8 @@ class HomeViewModel: ObservableObject {
         elapsedSeconds = 0
         isMatching = false
         currentRoom = nil
+        partnerAvatar = nil
+        showWaitingView = false
     }
     
     // MARK: - Cleanup
@@ -127,6 +131,12 @@ class HomeViewModel: ObservableObject {
                     self.stopTimer()
                     self.isMatching = false
                     self.currentRoom = room
+                    self.showWaitingView = true
+                    self.fetchPartnerAvatar { avatar in
+                        DispatchQueue.main.async {
+                            self.partnerAvatar = avatar
+                        }
+                    }
                 }
             }
     }
@@ -185,5 +195,48 @@ class HomeViewModel: ObservableObject {
                     self.isMatching = false
                 }
             }
+    }
+    
+    func fetchPartnerAvatar(completion: @escaping (String?) -> Void) {
+        
+        guard let room = currentRoom,
+              let userId = Auth.auth().currentUser?.uid else {
+            completion(nil)
+            return
+        }
+        
+        guard let partnerId = room.users.first(where: { $0 != userId }) else {
+            completion(nil)
+            return
+        }
+        
+        Firestore.firestore()
+            .collection("users")
+            .document(partnerId)
+            .getDocument { snapshot, error in
+                
+                if let error = error {
+                    print("fetchPartnerAvatar error:", error)
+                    completion(nil)
+                    return
+                }
+                
+                let avatar = snapshot?.data()?["avatar"] as? String
+                completion(avatar)
+            }
+    }
+    
+    func prepareWaitingData(completion: @escaping (_ myAvatar: String?, _ partnerAvatar: String?) -> Void) {
+        
+        guard let userId = Auth.auth().currentUser?.uid else {
+            completion(nil, nil)
+            return
+        }
+        
+        let myAvatar = Auth.auth().currentUser?.photoURL?.absoluteString
+        
+        fetchPartnerAvatar { partnerAvatar in
+            completion(myAvatar, partnerAvatar)
+        }
     }
 }
