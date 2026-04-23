@@ -646,7 +646,7 @@ struct MessageRow: View {
     let onTapReaction: (Message) -> Void
     
     var isAI: Bool {
-        message.senderId == "AI"
+        message.isAI == true
     }
     
     var body: some View {
@@ -664,7 +664,6 @@ struct MessageRow: View {
                                 Image("logo1")
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 38, height: 38)
                                     .clipShape(Circle())
                             } else if let partner = partner {
                                 AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
@@ -672,18 +671,20 @@ struct MessageRow: View {
                                 } placeholder: {
                                     Circle().fill(Color.gray.opacity(0.3))
                                 }
-                                .frame(width: 38, height: 38)
                                 .clipShape(Circle())
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     onTapAvatar(partner)
                                 }
                             } else {
-                                Color.clear
-                                    .frame(width: 38)
+                                Circle().fill(Color.gray.opacity(0.2))
                             }
+                        } else {
+                            Color.clear
                         }
                     }
+                    .frame(width: 38, height: 38)
+
                     bubble
                     Spacer()
                 }

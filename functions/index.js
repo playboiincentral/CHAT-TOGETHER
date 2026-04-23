@@ -6,7 +6,6 @@ const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const { HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
 const vision = require("@google-cloud/vision");
 
 admin.initializeApp();
@@ -135,7 +134,6 @@ exports.joinQueue = onCall(async (request) => {
 
         const candidate = targetQueue[i];
         const candidateId = candidate.uid;
-
         const isBlocked = blockedSet.has(candidateId);
         const isFriend = friendSet.has(candidateId);
 
@@ -253,7 +251,6 @@ exports.leaveQueue = onCall(async (request) => {
     let male = data.male || [];
     let female = data.female || [];
 
-    // 🔥 remove khỏi cả 2 queue (an toàn tuyệt đối)
     male = male.filter(u => u.uid !== userId);
     female = female.filter(u => u.uid !== userId);
 
@@ -394,7 +391,7 @@ async function deleteRoomWithMessages(roomRef) {
   }
 
   await roomRef.delete();
-};
+}
 
 exports.blockUser = onCall(async (request) => {
 
@@ -459,20 +456,6 @@ for (const doc of rooms.docs) {
   return { success: true };
 });
 
-async function isBlocked(db, userA, userB) {
-  const snapshot = await db.collection("blocks")
-    .where("blockerId", "in", [userA, userB])
-    .get();
-
-  return snapshot.docs.some(doc => {
-    const data = doc.data();
-    return (
-      (data.blockerId === userA && data.blockedId === userB) ||
-      (data.blockerId === userB && data.blockedId === userA)
-    );
-  });
-}
-
 exports.removeFriend = onCall(async (request) => {
 
   if (!request.auth) {
@@ -495,19 +478,14 @@ exports.removeFriend = onCall(async (request) => {
   const friendshipRef = db.collection("friendships").doc(friendshipId);
 
   await db.runTransaction(async (transaction) => {
-
-    const [user1Doc, user2Doc, friendshipDoc] = await Promise.all([
-      transaction.get(userRef1),
-      transaction.get(userRef2),
-      transaction.get(friendshipRef)
-    ]);
+    const friendshipDoc = await transaction.get(friendshipRef);
 
     if (!friendshipDoc.exists) return;
 
-    // 🔥 xoá friendship
+    // xoá friendship
     transaction.delete(friendshipRef);
 
-    // 🔥 giảm count
+    // giảm count
     transaction.update(userRef1, {
       friendCount: admin.firestore.FieldValue.increment(-1)
     });
@@ -837,6 +815,7 @@ You are Tomi in a group chat.
         .collection("messages")
         .add({
           senderId: "Tomi",
+          senderName: "Tomi",
           text: aiText,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           isAI: true
@@ -889,9 +868,9 @@ exports.banUser = onCall(async (request) => {
 
   const adminData = adminSnap.data();
 
-if (!adminSnap.exists || adminData?.isAdmin !== true) {
-  throw new HttpsError("permission-denied", "Forbidden");
-}
+  if (!adminSnap.exists || !adminData || adminData.isAdmin !== true) {
+    throw new HttpsError("permission-denied", "Forbidden");
+  }
 
   if (!userId) throw new HttpsError("invalid-argument", "Missing userId");
 
@@ -943,9 +922,9 @@ exports.unbanUser = onCall(async (request) => {
 
   const adminData = adminSnap.data();
 
-if (!adminSnap.exists || adminData?.isAdmin !== true) {
-  throw new HttpsError("permission-denied", "Forbidden");
-}
+  if (!adminSnap.exists || !adminData || adminData.isAdmin !== true) {
+    throw new HttpsError("permission-denied", "Forbidden");
+  }
 
   // ======================================================
   // 2️⃣ UPDATE USER STATE
@@ -1015,9 +994,9 @@ exports.deleteUser = onCall(async (request) => {
 
   const adminData = adminSnap.data();
 
-if (!adminSnap.exists || adminData?.isAdmin !== true) {
-  throw new HttpsError("permission-denied", "Forbidden");
-}
+  if (!adminSnap.exists || !adminData || adminData.isAdmin !== true) {
+    throw new HttpsError("permission-denied", "Forbidden");
+  }
 
   // =========================
   // 2️⃣ DELETE FRIENDSHIPS
