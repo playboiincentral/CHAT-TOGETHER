@@ -343,33 +343,33 @@ struct ChatView: View {
     }
     
     private var messageSection: some View {
-        GeometryReader { geo in
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        
-                        ForEach(messageItems) { item in
-                            messageRow(item)
-                                .id(item.id)
-                        }
-                    }
-                    .padding()
-                    .frame(minHeight: geo.size.height)
-                }
-                .onChange(of: viewModel.messages.count) { _ in
-                    guard let lastId = viewModel.messages.last?.id else { return }
-
-                    DispatchQueue.main.async {
-                        withTransaction(Transaction(animation: nil)) {
-                            proxy.scrollTo(lastId, anchor: .bottom)
-                        }
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    
+                    ForEach(Array(messageItems.reversed())) { item in
+                        messageRow(item)
+                            .id(item.id)
+                            .rotationEffect(.degrees(180))
                     }
                 }
-                .onChange(of: scrollToMessageId) { id in
-                    if let id {
-                        withAnimation {
-                            proxy.scrollTo(id, anchor: .center)
-                        }
+                .padding()
+            }
+            .rotationEffect(.degrees(180))
+            .scrollIndicators(.hidden)
+            .onChange(of: viewModel.messages.count) { _ in
+                guard let lastId = viewModel.messages.last?.id else { return }
+                
+                DispatchQueue.main.async {
+                    withTransaction(Transaction(animation: nil)) {
+                        proxy.scrollTo(lastId, anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: scrollToMessageId) { id in
+                if let id {
+                    withAnimation {
+                        proxy.scrollTo(id, anchor: .center)
                     }
                 }
             }

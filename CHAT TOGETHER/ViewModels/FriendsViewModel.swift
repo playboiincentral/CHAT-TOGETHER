@@ -21,7 +21,7 @@ class FriendsViewModel: ObservableObject {
         
         // 🔥 CHƯA load rooms → show hết
         guard didLoadRooms else {
-            return friends
+            return []
         }
         
         let usersInRooms = Set(

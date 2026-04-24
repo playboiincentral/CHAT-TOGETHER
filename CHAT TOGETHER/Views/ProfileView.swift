@@ -247,11 +247,11 @@ struct ProfileView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                    .background(Color(.systemGray5))
+                                    .cornerRadius(12)
                             }
                         }
-                        .foregroundColor(.primary)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(12)
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
                     
