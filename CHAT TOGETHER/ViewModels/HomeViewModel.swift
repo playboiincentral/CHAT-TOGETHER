@@ -135,6 +135,12 @@ class HomeViewModel: ObservableObject {
                     self.fetchPartnerAvatar { avatar in
                         DispatchQueue.main.async {
                             self.partnerAvatar = avatar
+                            if let room = self.currentRoom,
+                                       let userId = Auth.auth().currentUser?.uid,
+                                       let partnerId = room.users.first(where: { $0 != userId }) {
+                                        
+                                        AvatarCache.shared.set(partnerId, avatar: avatar)
+                                    }
                         }
                     }
                 }
@@ -210,6 +216,11 @@ class HomeViewModel: ObservableObject {
             return
         }
         
+        if let cached = AvatarCache.shared.get(partnerId) {
+                completion(cached)
+                return
+            }
+        
         Firestore.firestore()
             .collection("users")
             .document(partnerId)
@@ -222,6 +233,7 @@ class HomeViewModel: ObservableObject {
                 }
                 
                 let avatar = snapshot?.data()?["avatar"] as? String
+                AvatarCache.shared.set(partnerId, avatar: avatar)
                 completion(avatar)
             }
     }

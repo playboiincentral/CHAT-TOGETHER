@@ -13,6 +13,7 @@ struct DeleteAccountView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var isDeleting = false
+    @State private var showConfirmDelete = false
     
     var body: some View {
         VStack {
@@ -38,12 +39,7 @@ struct DeleteAccountView: View {
             
             // 🔴 Delete button
             Button {
-                Task {
-                    isDeleting = true
-                    await vm.deleteAccount()
-                    isDeleting = false
-                    dismiss()
-                }
+                showConfirmDelete = true
             } label: {
                 Text(isDeleting ? "Deleting..." : "Delete My Account")
                     .fontWeight(.semibold)
@@ -55,9 +51,21 @@ struct DeleteAccountView: View {
             .disabled(isDeleting)
             .padding(.bottom)
         }
+        .alert("Delete Account?", isPresented: $showConfirmDelete) {
+            
+            Button("Cancel", role: .cancel) { }
+            
+            Button("Delete", role: .destructive) {
+                Task {
+                    isDeleting = true
+                    await vm.deleteAccount()
+                    isDeleting = false
+                    dismiss()
+                }
+            }
+            
+        } message: {
+            Text("This action cannot be undone. Are you sure you want to continue?")
+        }
     }
-}
-
-#Preview {
-    DeleteAccountView()
 }

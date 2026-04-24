@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct MessageCard: View {
     
@@ -27,16 +28,17 @@ struct MessageCard: View {
         HStack(spacing: 9) {
             
             // MARK: - Avatar
-            AsyncImage(url: URL(string: partner?.avatar ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-            }
-            .frame(width: 72, height: 72)
-            .clipShape(Circle())
+            KFImage(URL(string: partner?.avatar ?? ""))
+                .placeholder {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+                .retry(maxCount: 2, interval: .seconds(1))
+                .cacheOriginalImage(true)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 72, height: 72)
+                .clipShape(Circle())
             
             // MARK: - Name + Message
             VStack(alignment: .leading, spacing: 8) {

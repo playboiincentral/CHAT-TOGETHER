@@ -14,7 +14,6 @@ class ChatViewModel: ObservableObject {
     @Published var isRoomReady = false
     @Published var showUnfriendAlert = false
     private var friendshipListener: ListenerRegistration?
-    private var partnerListener: ListenerRegistration?
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
     private var hasReceivedFirstRoomSnapshot = false
@@ -37,7 +36,6 @@ class ChatViewModel: ObservableObject {
             self.hasReceivedFirstRoomSnapshot = false
             self.messages = []
             
-            fetchPartner()
             listenMessages()
             listenRoomStatus()
             
@@ -55,7 +53,6 @@ class ChatViewModel: ObservableObject {
         
         listener?.remove()
         roomListener?.remove()
-        partnerListener?.remove()
         friendshipListener?.remove()
     }
     
@@ -93,31 +90,24 @@ class ChatViewModel: ObservableObject {
             return
         }
         
-        partnerListener = db.collection("users")
+        
+        db.collection("users")
             .document(partnerId)
-            .addSnapshotListener { [weak self] snapshot, error in
-                
-                guard let self = self else { return }
+            .getDocument { [weak self] snapshot, error in
                 
                 if let error = error {
-                    print("Fetch partner error:", error.localizedDescription)
+                    print("❌ Fetch partner error:", error.localizedDescription)
                     return
                 }
                 
-                guard let snapshot = snapshot, snapshot.exists else {
-                    print("User not found")
+                guard let snapshot = snapshot,
+                      snapshot.exists,
+                      let user = try? snapshot.data(as: AppUser.self) else {
                     return
                 }
                 
-                do {
-                    let user = try snapshot.data(as: AppUser.self)
-                    
-                    DispatchQueue.main.async {
-                        self.partner = user
-                    }
-                    
-                } catch {
-                    print("Decode error:", error)
+                DispatchQueue.main.async {
+                    self?.partner = user
                 }
             }
     }
@@ -415,9 +405,6 @@ class ChatViewModel: ObservableObject {
                     self.roomListener?.remove()
                     self.roomListener = nil
                     
-                    self.partnerListener?.remove()
-                    self.partnerListener = nil
-                    
                     self.friendshipListener?.remove()
                     self.friendshipListener = nil
                 }
@@ -433,9 +420,6 @@ class ChatViewModel: ObservableObject {
         
         roomListener?.remove()
         roomListener = nil
-        
-        partnerListener?.remove()
-        partnerListener = nil
         
         friendshipListener?.remove()
         friendshipListener = nil

@@ -1,4 +1,5 @@
 import Foundation
+import Kingfisher
 import FirebaseAuth
 import FirebaseFirestore
 
@@ -37,6 +38,7 @@ class CurrentUserManager: ObservableObject {
             if let user = try? snapshot.data(as: AppUser.self) {
                 DispatchQueue.main.async {
                     self.currentUser = user
+                    self.preloadAvatar(user.avatar)
                 }
             } else {
                 print("❌ Mapping failed")
@@ -82,4 +84,12 @@ class CurrentUserManager: ObservableObject {
         }
     }
     
+    private func preloadAvatar(_ urlString: String?) {
+        guard let urlString = urlString,
+              let url = URL(string: urlString) else { return }
+        
+        Task {
+            _ = try? await KingfisherManager.shared.retrieveImage(with: url)
+        }
+    }
 }

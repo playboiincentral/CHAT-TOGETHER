@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct ChatView: View {
     @Environment(\.dismiss) var dismiss
@@ -79,6 +80,7 @@ struct ChatView: View {
             .navigationBarBackButtonHidden(true)
             .onAppear {
                 viewModel.messages = []
+                viewModel.fetchPartner()
                 viewModel.handleOnAppear()
             }
             .onChange(of: viewModel.shouldDismiss) { value in
@@ -215,13 +217,17 @@ struct ChatView: View {
                 } label: {
                     HStack(spacing: 10) {
                         
-                        AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            Circle().fill(Color.gray.opacity(0.3))
-                        }
-                        .frame(width: 36, height: 36)
-                        .clipShape(Circle())
+                        KFImage(URL(string: partner.avatar ?? ""))
+                            .placeholder {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                            .retry(maxCount: 2, interval: .seconds(1))
+                            .cacheOriginalImage(true)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 36, height: 36)
+                            .clipShape(Circle())
                         
                         Text(partner.fullname)
                             .font(.headline)
@@ -666,16 +672,20 @@ struct MessageRow: View {
                                     .scaledToFill()
                                     .clipShape(Circle())
                             } else if let partner = partner {
-                                AsyncImage(url: URL(string: partner.avatar ?? "")) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    Circle().fill(Color.gray.opacity(0.3))
-                                }
-                                .clipShape(Circle())
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    onTapAvatar(partner)
-                                }
+                                KFImage(URL(string: partner.avatar ?? ""))
+                                    .placeholder {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                    }
+                                    .retry(maxCount: 2, interval: .seconds(1))
+                                    .cacheOriginalImage(true)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 38, height: 38)
+                                    .clipShape(Circle())
+                                    .onTapGesture {
+                                        onTapAvatar(partner)
+                                    }
                             } else {
                                 Circle().fill(Color.gray.opacity(0.2))
                             }

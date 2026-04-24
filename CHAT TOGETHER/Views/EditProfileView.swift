@@ -11,6 +11,7 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
 import PhotosUI
+import Kingfisher
 
 struct EditProfileView: View {
     @EnvironmentObject var currentUserManager: CurrentUserManager
@@ -146,11 +147,15 @@ struct EditProfileView: View {
                         .scaledToFill()
                 } else if let avatarURL,
                           let url = URL(string: avatarURL) {
-                    AsyncImage(url: url) { image in
-                        image.resizable().scaledToFill()
-                    } placeholder: {
-                        Circle().fill(Color.gray.opacity(0.2))
-                    }
+                    KFImage(url)
+                        .placeholder {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        .retry(maxCount: 2, interval: .seconds(1))
+                        .cacheOriginalImage(true)
+                        .resizable()
+                        .scaledToFill()
                 } else {
                     Circle()
                         .fill(Color.gray.opacity(0.2))
@@ -251,7 +256,6 @@ struct EditProfileView: View {
             return
         }
         
-        // 👇 cập nhật lại fullname đã trim
         fullname = trimmedName
         
         isSaving = true

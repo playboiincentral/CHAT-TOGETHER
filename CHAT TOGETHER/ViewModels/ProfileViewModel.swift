@@ -7,55 +7,35 @@ class ProfileViewModel: ObservableObject {
     
     @Published var user: AppUser?
     private let db = Firestore.firestore()
-    private var listener: ListenerRegistration?
     
     init(user: AppUser) {
         self.user = user
-        
-        guard let uid = user.uid else {
-            print("❌ Missing UID")
-            return
-        }
-        
-        listenUser(uid: uid)
     }
     
-    func reset() {
-        removeListener()
-        user = nil
-    }
-    
-    func listenUser(uid: String) {
-        removeListener()
+    func fetchUser(uid: String) {
         
-        listener = db.collection("users")
+        db.collection("users")
             .document(uid)
-            .addSnapshotListener { [weak self] snapshot, _ in
+            .getDocument { [weak self] snapshot, error in
                 
-                guard let snapshot = snapshot, snapshot.exists,
-                      let data = snapshot.data() else {
-                    DispatchQueue.main.async {
-                        self?.user = nil
-                    }
+                if let error = error {
+                    print("❌ Fetch error: \(error.localizedDescription)")
                     return
                 }
                 
-                if let user = try? snapshot.data(as: AppUser.self) {
-                    DispatchQueue.main.async {
-                        self?.user = user
-                    }
-                } else {
-                    print("❌ Mapping failed")
+                guard let snapshot = snapshot,
+                      snapshot.exists,
+                      let user = try? snapshot.data(as: AppUser.self) else {
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    self?.user = user
                 }
             }
     }
     
-    func removeListener() {
-        listener?.remove()
-        listener = nil
-    }
-    
-    deinit {
-        removeListener()
+    func reset() {
+        user = nil
     }
 }

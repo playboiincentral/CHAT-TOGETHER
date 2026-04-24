@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseAuth
+import Kingfisher
 
 struct ProfileView: View {
     
@@ -15,11 +16,13 @@ struct ProfileView: View {
     @State private var isProcessing111 = false
     let isCurrentUser: Bool
     let roomId: String?
+    let userId: String?
     
     init(user: AppUser, roomId: String? = nil, isCurrentUser: Bool = false) {
-            _viewModel = StateObject(wrappedValue: ProfileViewModel(user: user))
-            self.roomId = roomId
-            self.isCurrentUser = isCurrentUser
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(user: user))
+        self.roomId = roomId
+        self.isCurrentUser = isCurrentUser
+        self.userId = user.uid
     }
     
     var displayUser: AppUser? {
@@ -37,17 +40,18 @@ struct ProfileView: View {
                     // Avatar
                     if let avatar = displayUser?.avatar,
                        let url = URL(string: avatar) {
-                        
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            ProgressView()
-                                .controlSize(.small)
-                        }
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
+
+                        KFImage(url)
+                            .placeholder {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                            .retry(maxCount: 2, interval: .seconds(1))
+                            .cacheOriginalImage(true)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
                     } else {
                         ZStack {
                             Circle().fill(Color.gray.opacity(0.2))
@@ -129,6 +133,13 @@ struct ProfileView: View {
                     }
                 }
             }
+            .onAppear {
+                if !isCurrentUser {
+                    if let userId = userId {
+                        viewModel.fetchUser(uid: userId)
+                    }
+                }
+            }
             .disabled(isProcessing)
             .overlay {
                 if isProcessing {
@@ -181,9 +192,6 @@ struct ProfileView: View {
                 
             } message: {
                 Text("You will not be matched with this person again. This action cannot be undone.")
-            }
-            .onDisappear {
-                viewModel.removeListener()
             }
         }
     }

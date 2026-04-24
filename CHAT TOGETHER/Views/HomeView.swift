@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct HomeView: View {
     
@@ -147,16 +148,17 @@ struct HomeView: View {
         if let avatar = currentUser.currentUser?.avatar,
            let url = URL(string: avatar) {
             
-            AsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                ProgressView()
-                    .controlSize(.small)
-            }
-            .frame(width: 80, height: 80)
-            .clipShape(Circle())
+            KFImage(url)
+                .placeholder {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+                .retry(maxCount: 2, interval: .seconds(1))
+                .cacheOriginalImage(true)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
             
         } else {
             

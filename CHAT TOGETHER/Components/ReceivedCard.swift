@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct ReceivedCard: View {
     let user: AppUser
@@ -7,26 +8,23 @@ struct ReceivedCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ZStack(alignment: .bottomTrailing) { // Chuyển nút sang góc để không che mặt
+            ZStack(alignment: .bottomTrailing) {
                 
-                AsyncImage(url: URL(string: user.avatar ?? "")) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    ZStack {
-                        Color.gray.opacity(0.2)
+                KFImage(URL(string: user.avatar ?? ""))
+                    .placeholder {
                         ProgressView()
+                            .controlSize(.small)
                     }
-                }
-                // Thay vì frame cứng 220, ta dùng aspectRatio để tự co giãn theo chiều rộng
-                .aspectRatio(3/4, contentMode: .fill)
-                .frame(minWidth: 0, maxWidth: .infinity)
-                .frame(height: 220)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .contentShape(RoundedRectangle(cornerRadius: 20))
+                    .retry(maxCount: 2, interval: .seconds(1))
+                    .cacheOriginalImage(true)
+                    .resizable()
+                    .scaledToFill()
+                    .aspectRatio(3/4, contentMode: .fill)
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .frame(height: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .contentShape(RoundedRectangle(cornerRadius: 20))
                 
-                // Buttons overlay: Thêm hiệu ứng đổ bóng để nổi bật trên ảnh
                 HStack(spacing: 10) {
                     Button(action: rejectAction) {
                         Image(systemName: "xmark")
@@ -53,15 +51,11 @@ struct ReceivedCard: View {
             }
             
             // Name Section
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading) {
                 Text(user.fullname)
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.primary)
                     .lineLimit(1)
-                
-                Text("Friend request")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
             }
             .padding(.horizontal, 4)
         }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct WaitingView: View {
     @Environment(\.dismiss) var dismiss
@@ -39,7 +40,7 @@ struct WaitingView: View {
         }
         .padding()
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
                 dismiss()
             }
         }
@@ -49,16 +50,17 @@ struct WaitingView: View {
     @ViewBuilder
     private func avatarView(url: String?) -> some View {
         if let url = url, let imageURL = URL(string: url) {
-            AsyncImage(url: imageURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-            }
-            .frame(width: 80, height: 80)
-            .clipShape(Circle())
+            KFImage(imageURL)
+                .placeholder {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+                .retry(maxCount: 2, interval: .seconds(1))
+                .cacheOriginalImage(true)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
         } else {
             Circle()
                 .fill(Color.gray.opacity(0.3))
