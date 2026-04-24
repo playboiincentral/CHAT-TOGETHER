@@ -55,6 +55,16 @@ struct UserRowView: View {
                 
                 Spacer()
                 
+                Menu("Role") {
+                    Button("Make Admin") {
+                        setAdmin(true)
+                    }
+
+                    Button("Make User") {
+                        setAdmin(false)
+                    }
+                }
+                
                 Menu {
                     Button("Delete User", role: .destructive) {
                         showDeleteAlert = true
@@ -180,5 +190,28 @@ extension UserRowView {
             
             onAction()
         }
+    }
+    
+    func setAdmin(_ value: Bool) {
+        guard let uid = user.uid else { return }
+
+        isLoading = true
+
+        Functions.functions(region: "asia-southeast1")
+            .httpsCallable("setAdminStatus")
+            .call([
+                "userId": uid,
+                "isAdmin": value
+            ]) { result, error in
+                
+                isLoading = false
+                
+                if let error = error {
+                    print("Error:", error)
+                    return
+                }
+                
+                onAction()
+            }
     }
 }

@@ -1145,3 +1145,29 @@ exports.createReportWithSnapshot = onCall(async (request) => {
     reportId: reportRef.id
   };
 });
+
+exports.setAdminStatus = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Unauthorized");
+  }
+
+  const adminId = request.auth.uid;
+  const { userId, isAdmin } = request.data;
+
+  const adminSnap = await db.collection("users").doc(adminId).get();
+  const adminData = adminSnap.data();
+
+  if (!adminSnap.exists || adminData?.isAdmin !== true) {
+    throw new HttpsError("permission-denied", "Forbidden");
+  }
+
+  if (typeof isAdmin !== "boolean") {
+    throw new HttpsError("invalid-argument", "isAdmin must be boolean");
+  }
+
+  await db.collection("users").doc(userId).update({
+    isAdmin
+  });
+
+  return { success: true };
+});
