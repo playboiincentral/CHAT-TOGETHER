@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct SentCard: View {
     let user: AppUser
@@ -9,21 +10,20 @@ struct SentCard: View {
             ZStack(alignment: .topTrailing) {
                 
                 // Avatar
-                AsyncImage(url: URL(string: user.avatar ?? "")) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    ZStack {
-                        Color.gray.opacity(0.1)
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.gray.opacity(0.5))
+                KFImage(URL(string: user.avatar ?? ""))
+                    .placeholder {
+                        ProgressView()
+                            .controlSize(.small)
                     }
-                }
-                .aspectRatio(3/4, contentMode: .fill)
-                .frame(minWidth: 0, maxWidth: .infinity)
-                .frame(height: 200) // Thấp hơn một chút so với card nhận được
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .retry(maxCount: 2, interval: .seconds(1))
+                    .cacheOriginalImage(true)
+                    .resizable()
+                    .scaledToFill()
+                    .aspectRatio(3/4, contentMode: .fill)
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .contentShape(RoundedRectangle(cornerRadius: 20))
                 
                 // Nút Hủy (Cancel) - Nhìn nhẹ nhàng hơn
                 Button(action: cancelAction) {
