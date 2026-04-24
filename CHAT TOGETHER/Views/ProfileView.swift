@@ -171,11 +171,11 @@ struct ProfileView: View {
                     )
                 }
             }
-            .alert("Remove friend?", isPresented: $showRemoveFriendAlert) {
+            .alert("Unfriend?", isPresented: $showRemoveFriendAlert) {
                 
                 Button("Cancel", role: .cancel) { }
                 
-                Button("Remove", role: .destructive) {
+                Button("Unfriend", role: .destructive) {
                     removeFriend()
                 }
                 
@@ -243,7 +243,7 @@ struct ProfileView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding()
                             } else {
-                                Text("Remove Friend")
+                                Text("Unfriend")
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .fontWeight(.semibold)

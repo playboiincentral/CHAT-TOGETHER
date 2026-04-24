@@ -17,7 +17,7 @@ class ChatViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
     private var hasReceivedFirstRoomSnapshot = false
-    private var pendingMessages: [String] = []
+    private var pendingMessages: [(text: String, reply: Message?)] = []
     @Published var room: ChatRoom
     private var heartbeatTimer: Timer?
     
@@ -141,7 +141,11 @@ class ChatViewModel: ObservableObject {
                             text: doc["text"] as? String ?? "",
                             createdAt: timestamp?.dateValue(),
                             reaction: doc["reaction"] as? String,
-                            isAI: isAI
+                            isAI: isAI,
+                            
+                            // 🔥 NEW
+                            replyToMessageId: doc["replyToMessageId"] as? String,
+                            replyPreview: doc["replyPreview"] as? String
                         )
                     }
                 }
@@ -233,15 +237,15 @@ class ChatViewModel: ObservableObject {
     }
     
     private func flushPendingMessages() {
-        pendingMessages.forEach { text in
-            actuallySend(text)
+        pendingMessages.forEach { item in
+            actuallySend(item.text, replyTo: item.reply)
         }
         pendingMessages.removeAll()
     }
     
     // MARK: - Send message
     
-    func sendMessage() {
+    func sendMessage(replyTo: Message?) {
         let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -252,21 +256,22 @@ class ChatViewModel: ObservableObject {
             return
         }
 
-        // 🔥 room chưa ready → queue
         if !isRoomReady {
-            pendingMessages.append(trimmed)
+            pendingMessages.append((trimmed, replyTo))
             return
         }
 
-        actuallySend(trimmed)
+        actuallySend(trimmed, replyTo: replyTo)
     }
     
-    private func actuallySend(_ text: String) {
+    private func actuallySend(_ text: String, replyTo: Message?) {
         guard let currentUserId = userId else { return }
 
         let roomRef = db.collection("chatRooms").document(room.roomId)
         let messageRef = roomRef.collection("messages").document()
         let currentUserName = currentUserManager.currentUser?.fullname ?? "User"
+        let replyId = replyTo?.id
+        let replyPreview = replyTo?.text
         
         let batch = db.batch()
 
@@ -277,7 +282,11 @@ class ChatViewModel: ObservableObject {
             "text": text,
             "createdAt": FieldValue.serverTimestamp(),
             "reaction": NSNull(),
-            "isAITrigger": text.range(of: "@tomi", options: .caseInsensitive) != nil
+            "isAITrigger": text.range(of: "@tomi", options: .caseInsensitive) != nil,
+            
+            // 🔥 NEW
+            "replyToMessageId": replyId as Any,
+            "replyPreview": replyPreview as Any
         ], forDocument: messageRef)
 
         // 🔹 room update
