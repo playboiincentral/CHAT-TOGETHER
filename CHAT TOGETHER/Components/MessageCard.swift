@@ -14,10 +14,14 @@ struct MessageCard: View {
     let partner: AppUser?
     
     var isUnread: Bool {
-            guard let lastMessageAt = room.lastMessageAt else { return false }
-            let lastRead = room.lastReadAt?[currentUserId]
-            return lastRead == nil || lastRead!.dateValue() < lastMessageAt.dateValue()
-        }
+        guard let lastMessageAt = room.lastMessageAt else { return false }
+        let lastRead = room.lastReadAt?[currentUserId]
+        return lastRead == nil || lastRead!.dateValue() < lastMessageAt.dateValue()
+    }
+    
+    var isMyLastMessage: Bool {
+        room.lastMessageSenderId == currentUserId
+    }
     
     var body: some View {
         HStack(spacing: 9) {
@@ -46,8 +50,8 @@ struct MessageCard: View {
                 // Message
                 Text(lastMessageText())
                     .font(.system(size: 16))
-                    .fontWeight(isUnread ? .semibold : .regular)
-                    .foregroundColor(isUnread ? .primary : .secondary)
+                    .fontWeight(isMyLastMessage ? .regular : (isUnread ? .semibold : .regular))
+                    .foregroundColor(isMyLastMessage ? .secondary : (isUnread ? .primary : .secondary))
                     .lineLimit(1)
             }
             
@@ -59,10 +63,10 @@ struct MessageCard: View {
                     
                     Text(timeString(from: date))
                         .font(.system(size: 14))
-                        .fontWeight(isUnread ? .semibold : .regular)
-                        .foregroundColor(isUnread ? .primary : .secondary)
+                        .fontWeight(isMyLastMessage ? .regular : (isUnread ? .semibold : .regular))
+                        .foregroundColor(isMyLastMessage ? .secondary : (isUnread ? .primary : .secondary))
                     
-                    if isUnread {
+                    if isUnread && !isMyLastMessage {
                         Circle()
                             .fill(Color.blue)
                             .frame(width: 10, height: 10)
