@@ -502,21 +502,23 @@ struct ChatView: View {
     }
     
     private func handleReactionTap(_ emoji: String, for message: Message) {
-        guard message.senderId != viewModel.userId else { return }
+        guard let userId = viewModel.userId else { return }
         
-        if message.reaction == emoji {
+        let current = message.reactions?[userId]
+        
+        if current == emoji {
             viewModel.removeReaction(messageId: message.id)
         } else {
             viewModel.updateReaction(
                 messageId: message.id,
-                senderId: message.senderId,
-                reaction: emoji
+                userId: userId,
+                emoji: emoji
             )
         }
         
         showReactionPicker = false
     }
-    
+        
     private func insertMention(_ name: String) {
         guard let range = viewModel.messageText.range(of: "@\\w*$", options: .regularExpression) else {
             return
@@ -524,27 +526,6 @@ struct ChatView: View {
         
         viewModel.messageText.replaceSubrange(range, with: "@\(name) ")
         showMentionList = false
-    }
-    
-    private func reactionView(for message: Message) -> some View {
-        Group {
-            if let reaction = message.reaction {
-                Text(reaction)
-                    .font(.caption)
-                    .padding(6)
-                    .background(Color.white)
-                    .clipShape(Circle())
-                    .shadow(radius: 3)
-                    .offset(
-                        x: message.senderId == viewModel.userId ? 8 : -8,
-                        y: 8
-                    )
-                    .transition(.asymmetric(
-                        insertion: .scale(scale: 0.3).combined(with: .opacity),
-                        removal: .scale(scale: 0.1).combined(with: .opacity)
-                    ))
-            }
-        }
     }
     
     private func shouldShowDate(current: Message, previous: Message?) -> Bool {
@@ -1018,9 +999,7 @@ struct MessageRow: View {
             self.currentFrame = value
         }
         .onLongPressGesture {
-            if !isCurrentUser {
-                onLongPress(message, currentFrame)
-            }
+            onLongPress(message, currentFrame)
         }
     }
     
@@ -1055,25 +1034,47 @@ struct MessageRow: View {
                     )
         }
         .overlay(alignment: isCurrentUser ? .bottomTrailing : .bottomLeading) {
-                if let reaction = message.reaction, !isOverlay {
-                    Text(reaction)
-                        .font(.caption)
-                        .padding(6)
-                        .background(Color(.systemGray5))
-                        .clipShape(Circle())
-                        .shadow(radius: 3)
-                        .offset(x: isCurrentUser ? 8 : -8, y: 8)
-                        .onTapGesture {
-                            if !isCurrentUser {
-                                onTapReaction(message)
-                            }
-                        }
+            if let display = reactionDisplay(for: message), !isOverlay {
+                
+                HStack(spacing: 4) {
+                    
+                    ForEach(display.emojis.prefix(2), id: \.self) { emoji in
+                        Text(emoji)
+                    }
+                    
+                    if display.count > 1 {
+                        Text("\(display.count)")
+                            .font(.caption2)
+                    }
+                }
+                .font(.caption)
+                .padding(6)
+                .background(Color(.systemGray5))
+                .clipShape(Capsule())
+                .shadow(radius: 3)
+                .offset(x: isCurrentUser ? 8 : -8, y: 8)
+                .onTapGesture {
+                    onTapReaction(message)
                 }
             }
+        }
         .contentShape(Rectangle())
         .background(
             isHighlighted ? Color.yellow.opacity(0.3) : Color.clear
         )
+    }
+    
+    private func reactionDisplay(for message: Message) -> (emojis: [String], count: Int)? {
+        guard let reactions = message.reactions else { return nil }
+        
+        let values = Array(reactions.values)
+        let unique = Array(Set(values))
+        
+        if unique.count == 1 {
+            return (emojis: [unique[0]], count: values.count)
+        } else {
+            return (emojis: values, count: values.count)
+        }
     }
     
     private var bubbleShape: some Shape {

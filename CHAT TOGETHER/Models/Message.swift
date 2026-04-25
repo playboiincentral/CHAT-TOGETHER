@@ -14,7 +14,7 @@ struct Message: Identifiable, Codable {
     var senderName: String
     var text: String
     var createdAt: Date?
-    var reaction: String?
+    var reactions: [String: String]?
     var isAI: Bool
     var replyToMessageId: String?
     var replyPreview: String?

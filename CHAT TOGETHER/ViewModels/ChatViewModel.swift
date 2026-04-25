@@ -140,7 +140,7 @@ class ChatViewModel: ObservableObject {
                             senderName: doc["senderName"] as? String ?? "Unknown",
                             text: doc["text"] as? String ?? "",
                             createdAt: timestamp?.dateValue(),
-                            reaction: doc["reaction"] as? String,
+                            reactions: doc["reactions"] as? [String: String],
                             isAI: isAI,
                             
                             // 🔥 NEW
@@ -342,27 +342,27 @@ class ChatViewModel: ObservableObject {
     // MARK: - Update reaction
     func updateReaction(
         messageId: String,
-        senderId: String,
-        reaction: String
+        userId: String,
+        emoji: String
     ) {
-        guard senderId != userId else { return }
+        db.collection("chatRooms")
+            .document(room.roomId)
+            .collection("messages")
+            .document(messageId)
+            .updateData([
+                "reactions.\(userId)": emoji
+            ])
+    }
+    
+    func removeReaction(messageId: String) {
+        guard let userId else { return }
         
         db.collection("chatRooms")
             .document(room.roomId)
             .collection("messages")
             .document(messageId)
             .updateData([
-                "reaction": reaction
-            ])
-    }
-    
-    func removeReaction(messageId: String) {
-        db.collection("chatRooms")
-            .document(room.roomId)
-            .collection("messages")
-            .document(messageId)
-            .updateData([
-                "reaction": FieldValue.delete()
+                "reactions.\(userId)": FieldValue.delete()
             ])
     }
     
