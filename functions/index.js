@@ -869,8 +869,6 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
     reasons.push("other");
   }
 
-  const description = `Auto avatar violation (adult=${safe.adult}, violence=${safe.violence})`;
-
   try {
     await admin.storage().bucket(bucketName).file(filePath).delete();
   } catch (error) {
@@ -886,25 +884,15 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
   }
 
   try {
-    await db.collection("reports").add({
-      roomId: "",
-
-      reporterId: "system",
-      reportedUserId: userId,
-
-      reasons: reasons,
-      description: description,
-
-      messages: [],
-
-      status: "pending",
-
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    console.log("🚨 Report created for unsafe avatar:", userId);
-  } catch (err) {
-    console.error("❌ Report failed:", err);
+    await db.collection("users").doc(userId).set(
+      {
+        warnings: admin.firestore.FieldValue.increment(1),
+        lastWarningAt: admin.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+  } catch(err) {
+    console.log("Auto warning failed:", err);
   }
 });
 
