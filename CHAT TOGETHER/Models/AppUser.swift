@@ -32,5 +32,9 @@ struct AppUser: Codable, Identifiable, Hashable {
     var banType: BanType? = nil
     var banUntil: Date? = nil
     
+    var warnings: Int = 0
+    var lastWarningAt: Date?
+    var lastSeenWarning: Int = 0
+    
     var isAdmin: Bool = false
 }

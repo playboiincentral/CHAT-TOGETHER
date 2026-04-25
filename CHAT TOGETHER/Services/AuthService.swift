@@ -55,6 +55,9 @@ final class AuthService {
                 avatar: user.photoURL?.absoluteString,
                 createdAt: Date(),
                 status: .active,
+                warnings: 0,
+                lastWarningAt: nil,
+                lastSeenWarning: 0,
                 isAdmin: false
             )
             

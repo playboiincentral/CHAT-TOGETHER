@@ -837,6 +837,10 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
 
   if (!filePath.includes("avatars/")) return;
 
+  const parts = filePath.split("/");
+  const fileName = parts[1];
+  const userId = fileName.split(".")[0];
+
   const [result] = await client.safeSearchDetection(
     `gs://${bucketName}/${filePath}`
   );
@@ -849,10 +853,80 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
     safe.violence === "LIKELY" ||
     safe.violence === "VERY_LIKELY";
 
-  if (isUnsafe) {
-    await admin.storage().bucket(bucketName).file(filePath).delete();
-    console.log("Deleted unsafe image:", filePath);
+  if (!isUnsafe) return;
+
+  const reasons = [];
+
+  if (safe.adult === "LIKELY" || safe.adult === "VERY_LIKELY") {
+    reasons.push("sexualContent");
   }
+
+  if (safe.violence === "LIKELY" || safe.violence === "VERY_LIKELY") {
+    reasons.push("violence");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("other");
+  }
+
+  const description = `Auto avatar violation (adult=${safe.adult}, violence=${safe.violence})`;
+
+  try {
+    await admin.storage().bucket(bucketName).file(filePath).delete();
+  } catch (error) {
+    console.error("❌ Delete failed:", error);
+  }
+
+  try {
+    await db.collection("users").doc(userId).update({
+      avatar: null
+    });
+  } catch (errorr) {
+    console.error("Firebase update failed:", errorr);
+  }
+
+  try {
+    await db.collection("reports").add({
+      roomId: "",
+
+      reporterId: "system",
+      reportedUserId: userId,
+
+      reasons: reasons,
+      description: description,
+
+      messages: [],
+
+      status: "pending",
+
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log("🚨 Report created for unsafe avatar:", userId);
+  } catch (err) {
+    console.error("❌ Report failed:", err);
+  }
+});
+
+exports.warnUser = onCall(async (request) => {
+  const { userId } = request.data;
+
+  if (!userId) {
+    throw new HttpsError("invalid-argument", "Missing userId");
+  }
+
+  // ✅ tăng số lần warning
+  const userRef = db.collection("users").doc(userId);
+
+  await userRef.set(
+    {
+      warnings: admin.firestore.FieldValue.increment(1),
+      lastWarningAt: admin.firestore.FieldValue.serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  return { success: true };
 });
 
 exports.banUser = onCall(async (request) => {

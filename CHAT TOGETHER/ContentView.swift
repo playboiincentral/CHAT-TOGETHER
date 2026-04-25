@@ -12,9 +12,50 @@ import FirebaseFirestore
 struct ContentView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var currentUserManager: CurrentUserManager
+    @EnvironmentObject var warningManager: WarningManager
     @StateObject var onboardingVM = OnboardingViewModel()
     
     var body: some View {
+        ZStack {
+            mainContent
+            
+            if warningManager.showWarning {
+                
+                ZStack {
+                    Color.black.opacity(0.8)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 16) {
+                        
+                        Text("⚠️ Warning")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.red)
+                        
+                        Text(warningManager.message)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.white)
+                        
+                        Button("I understand and I won't do it again.") {
+                            warningManager.markAsSeen()
+                        }
+                        .padding()
+                        .background(Color.red)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .cornerRadius(15)
+                    }
+                    .padding()
+                    .background(Color.black.opacity(0.9))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 20)
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+    
+    var mainContent: some View {
         Group {
             if authVM.userSession != nil {
                 if let user = currentUserManager.currentUser {

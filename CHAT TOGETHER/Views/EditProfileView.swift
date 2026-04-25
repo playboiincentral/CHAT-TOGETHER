@@ -159,8 +159,11 @@ struct EditProfileView: View {
                         .resizable()
                         .scaledToFill()
                 } else {
-                    Circle()
-                        .fill(Color.gray.opacity(0.2))
+                    ZStack {
+                        Circle().fill(Color.gray.opacity(0.2))
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.gray)
+                    }
                 }
             }
             .frame(width: 120, height: 120)

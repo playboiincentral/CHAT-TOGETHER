@@ -124,6 +124,11 @@ struct ReportDetailView: View {
                 
                 Spacer()
                 
+                Button("Warn") {
+                    warnUser()
+                }
+                .foregroundStyle(.orange)
+                
                 Menu("Ban") {
                     Button("1 days") {
                         banUser(days: 1)
@@ -147,6 +152,28 @@ struct ReportDetailView: View {
 }
 
 extension ReportDetailView {
+    
+    func warnUser() {
+        isLoading = true
+        
+        Functions.functions(region: "asia-southeast1")
+            .httpsCallable("warnUser")
+            .call([
+                "userId": report.reportedUserId
+            ]) { _, error in
+                
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                
+                if let error = error {
+                    print("Warn error:", error)
+                    return
+                }
+                
+                updateReportStatus(.resolved)
+            }
+    }
     
     func banUser(days: Int) {
         isLoading = true

@@ -22,6 +22,7 @@ struct CHAT_TOGETHERApp: App {
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var relationManager = RelationManager()
     @StateObject private var currentUserManager = CurrentUserManager()
+    @StateObject private var warningManager = WarningManager()
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .dark
     
     var body: some Scene {
@@ -30,6 +31,7 @@ struct CHAT_TOGETHERApp: App {
                 .environmentObject(authVM)
                 .environmentObject(relationManager)
                 .environmentObject(currentUserManager)
+                .environmentObject(warningManager)
                 .preferredColorScheme(
                     appearanceMode == .dark ? .dark : .light
                 )
@@ -38,15 +40,22 @@ struct CHAT_TOGETHERApp: App {
                     if authVM.userSession != nil {
                         relationManager.startListening()
                         currentUserManager.startListening()
+                        if let session = authVM.userSession {
+                            warningManager.startListening(userId: session.uid)
+                        }
                     }
                 }
                 .onChange(of: authVM.userSession) { session in
                     if session != nil {
                         relationManager.startListening()
                         currentUserManager.startListening()
+                        if let session = authVM.userSession {
+                            warningManager.startListening(userId: session.uid)
+                        }
                     } else {
                         relationManager.stopListening()
                         currentUserManager.stopListening()
+                        warningManager.stopListening()
                     }
                 }
         }
