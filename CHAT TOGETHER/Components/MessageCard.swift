@@ -88,7 +88,7 @@ extension MessageCard {
         guard let text = room.lastMessage else { return "" }
         
         if room.lastMessageSenderId == currentUserId {
-            return "You: \(text)"
+            return "\(NSLocalizedString("you_prefix", comment: "")): \(text)"
         } else {
             return text
         }

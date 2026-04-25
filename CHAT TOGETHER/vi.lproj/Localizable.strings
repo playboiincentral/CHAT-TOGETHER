@@ -8,12 +8,31 @@
 
 "confirm_age" = "Tôi xác nhận rằng tôi %d tuổi!";
 "Loading user..." = "Đang tải người dùng...";
+"Done" = "Xong";
+"Match" = "Ghép Đôi";
+"Chat" = "Tin Nhắn";
 
 // LoginView
 "By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";
 "Terms of Service" = "Điều khoản Dịch vụ";
 "and" = "và";
 "Privacy Policy" = "Chính sách Bảo mật";
+"Sign in with Google" = "Đăng nhập bằng Google";
+
+// OnboardingView
+"Enter your date of birth *" = "Nhập ngày sinh của bạn *";
+"MM/DD/YYYY" = "tháng/ngày/năm";
+"You cannot change your date of birth after confirming it." = "Bạn không thể thay đổi ngày sinh sau khi đã xác nhận.";
+"Enter your display name *" = "Nhập tên hiển thị của bạn *";
+"Select your gender *" = "Chọn giới tính của bạn *";
+"Choose an avatar" = "Chọn ảnh đại diện";
+"Pick Avatar" = "Chọn Avatar";
+"Write a bio" = "Viết tiểu sử";
+"Back" = "Quay lại";
+"Next" = "Tiếp tục";
+"Skip" = "Bỏ qua";
+"Finish" = "Hoàn thành";
+"Updating..." = "Đang cập nhật...";
 
 // BannedView
 "Account Suspended" = "Tài Khoản Bị Đình Chỉ";
@@ -29,33 +48,44 @@
 // MessagesView
 "New Friends" = "Bạn Bè Mới";
 "Messages" = "Tin Nhắn";
+"you_prefix" = "Bạn";
 
 // ProfileView
 "Edit Profile" = "Sửa Hồ Sơ";
-"About me" = "Tiểu sử";
+"About me" = "Về tôi";
 "Member since" = "Tham gia từ";
 "Friends" = "Bạn bè";
 "Profile" = "Trang cá nhân";
+"Unfriend" = "Huỷ Kết Bạn";
+"Block" = "Chặn";
+"Report" = "Báo cáo";
+"Accept" = "Chấp Nhận";
+"Decline" = "Từ Chối";
+"Cancel Request" = "Huỷ Yêu Cầu";
+"Add Friend" = "Thêm Bạn Bè";
+"Would you like to unfriend? This can't be undone." = "Bạn có muốn hủy kết bạn không? Thao tác này không thể hoàn tác.";
+"You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?" = "Bạn sẽ không được ghép đôi với người này nữa. Hành động này không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục không?";
 
 // EditProfileView
 "Change Avatar" = "Đổi Ảnh Đại Diện";
 "Display Name" = "Tên Hiển Thị";
 "Gender" = "Giới Tính";
+"Woman" = "Nữ";
+"Man" = "Nam";
+"Bio" = "Tiểu Sử";
 "Select" = "Chọn";
-"Save Changes" = "Lưu Thay Đổi";
+"Save" = "Lưu";
 
 // ChatView
 "Unfriend?" = "Xoá Bạn?";
 "Cancel" = "Huỷ";
 "Remove" = "Xoá";
-"Are you sure you want to remove this friend?" = "Bạn có chắc muốn xoá bạn không?";
-"message..." = "tin nhắn...";
 "Send" = "Gửi";
-"Remove Friend" = "Xoá Bạn";
-"Accept" = "Chấp Nhận";
-"Decline" = "Từ Chối";
 "Send Friend Request" = "Gửi Lời Mời Kết Bạn";
-"Friend Request Sent" = "Đã Gửi Lời Mời Kết Bạn";
+"You are no longer friends." = "Hai người không còn là bạn bè nữa.";
+"Processing..." = "Đang xử lý...";
+"Replying to" = "Trả lời";
+"message... (type @Tomi to ask Tomi)" = "tin nhắn... (gõ @Tomi để hỏi Tomi)";
 
 // SettingsView
 "Appearance" = "Giao Diện";
@@ -63,10 +93,23 @@
 "Log Out" = "Đăng Xuất";
 "Delete Account" = "Xoá Tài Khoản";
 "Settings" = "Cài Đặt";
-"System" = "Theo hệ thống";
 "Light" = "Sáng";
 "Dark" = "Tối";
 "Legal" = "Pháp Lý";
 
-// FriendsListView
-"Search friends..." = "Tìm kiếm bạn bè...";
+// DeleteView
+"Delete your account?" = "Xóa tài khoản của bạn?";
+"This action is permanent and cannot be undone. All your data, messages, and connections will be permanently deleted." = "Thao tác này là vĩnh viễn và không thể hoàn tác. Tất cả dữ liệu, tin nhắn và liên lạc của bạn sẽ bị xóa vĩnh viễn.";
+"Deleting..." = "Đang xoá...";
+"Delete My Account" = "Xóa tài khoản của tôi";
+"Delete Account?" = "Xoá tài khoản?";
+"Delete" = "Xoá";
+"This action cannot be undone. Are you sure you want to continue?" = "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục không?";
+
+// RequestsView
+"No requests" = "Không có yêu cầu nào";
+"No sent requests" = "Không có yêu cầu nào được gửi";
+"Request" = "Yêu Cầu";
+"Requests" = "Yêu Cầu";
+"Sent" = "Đã Gửi";
+

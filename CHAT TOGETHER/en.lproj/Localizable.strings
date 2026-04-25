@@ -8,12 +8,31 @@
 
 "confirm_age" = "I confirm that I am %d years old!";
 "Loading user..." = "Loading user...";
+"Done" = "Done";
+"Match" = "Match";
+"Chat" = "Chat";
 
 // LoginView
 "By continuing, you agree to our" = "By continuing, you agree to our";
 "Terms of Service" = "Terms of Service";
 "and" = "and";
 "Privacy Policy" = "Privacy Policy";
+"Sign in with Google" = "Sign in with Google";
+
+// OnboardingView
+"Enter your date of birth *" = "Enter your date of birth *";
+"MM/DD/YYYY" = "MM/DD/YYYY";
+"You cannot change your date of birth after confirming it." = "You cannot change your date of birth after confirming it.";
+"Enter your display name *" = "Enter your display name *";
+"Select your gender *" = "Select your gender *";
+"Choose an avatar" = "Choose an avatar";
+"Pick Avatar" = "Pick Avatar";
+"Write a bio" = "Write a bio";
+"Back" = "Back";
+"Next" = "Next";
+"Skip" = "Skip";
+"Finish" = "Finish";
+"Updating..." = "Updating...";
 
 // BannedView
 "Account Suspended" = "Account Suspended";
@@ -29,6 +48,7 @@
 // MessagesView
 "New Friends" = "New Friends";
 "Messages" = "Messages";
+"you_prefix" = "You";
 
 // ProfileView
 "Edit Profile" = "Edit Profile";
@@ -36,26 +56,36 @@
 "Member since" = "Member since";
 "Friends" = "Friends";
 "Profile" = "Profile";
+"Unfriend" = "Unfriend";
+"Block" = "Block";
+"Report" = "Report";
+"Accept" = "Accept";
+"Decline" = "Decline";
+"Cancel Request" = "Cancel Request";
+"Add Friend" = "Add Friend";
+"Would you like to unfriend? This can't be undone." = "Would you like to unfriend? This can't be undone.";
+"You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?" = "You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?";
 
 // EditProfileView
 "Change Avatar" = "Change Avatar";
 "Display Name" = "Display Name";
 "Gender" = "Gender";
+"Woman" = "Woman";
+"Man" = "Man";
+"Bio" = "Bio";
 "Select" = "Select";
-"Save Changes" = "Save Changes";
+"Save" = "Save";
 
 // ChatView
 "Unfriend?" = "Unfriend?";
 "Cancel" = "Cancel";
 "Remove" = "Remove";
-"Are you sure you want to remove this friend?" = "Are you sure you want to remove this friend?";
-"Message..." = "Message...";
 "Send" = "Send";
-"Remove Friend" = "Remove Friend";
-"Accept" = "Accept";
-"Decline" = "Decline";
-"Friend Request Sent" = "Friend Request Sent";
 "Send Friend Request" = "Send Friend Request";
+"You are no longer friends." = "You are no longer friends.";
+"Processing..." = "Processing...";
+"Replying to" = "Replying to";
+"message... (type @Tomi to ask Tomi)" = "message... (type @Tomi to ask Tomi)";
 
 // SettingsView
 "Appearance" = "Appearance";
@@ -63,11 +93,22 @@
 "Log Out" = "Log Out";
 "Delete Account" = "Delete Account";
 "Settings" = "Settings";
-"System" = "System";
 "Light" = "Light";
 "Dark" = "Dark";
 "Legal" = "Legal";
 
-// FriendsListView
-"Friends" = "Friends";
-"Search friends..." = "Search friends...";
+// DeleteView
+"Delete your account?" = "Delete your account?";
+"This action is permanent and cannot be undone. All your data, messages, and connections will be permanently deleted." = "This action is permanent and cannot be undone. All your data, messages, and connections will be permanently deleted.";
+"Deleting..." = "Deleting...";
+"Delete My Account" = "Delete My Account";
+"Delete Account?" = "Delete Account?";
+"Delete" = "Delete";
+"This action cannot be undone. Are you sure you want to continue?" = "This action cannot be undone. Are you sure you want to continue?";
+
+// RequestsView
+"No requests" = "No requests";
+"No sent requests" = "No sent requests";
+"Request" = "Request";
+"Requests" = "Requests";
+"Sent" = "Sent";

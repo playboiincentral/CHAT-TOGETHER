@@ -26,14 +26,10 @@ struct AppTabView: View {
             MessagesView(selectedTab: $selectedTab)
                 .tabItem {
                     Image(systemName: selectedTab == 2 ? "message.fill" : "message")
-                    Text("Messages")
+                    Text("Chat")
                 }
                 .tag(2)
         }
         .tint(.primary)
     }
-}
-
-#Preview {
-    AppTabView()
 }

@@ -180,9 +180,9 @@ struct ProfileView: View {
                 }
                 
             } message: {
-                Text("Are you sure you want to remove this friend?")
+                Text("Would you like to unfriend? This can't be undone.")
             }
-            .alert("Block user?", isPresented: $showBlockAlert) {
+            .alert("Block User?", isPresented: $showBlockAlert) {
                 
                 Button("Cancel", role: .cancel) { }
                 
@@ -191,7 +191,7 @@ struct ProfileView: View {
                 }
                 
             } message: {
-                Text("You will not be matched with this person again. This action cannot be undone.")
+                Text("You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?")
             }
         }
     }

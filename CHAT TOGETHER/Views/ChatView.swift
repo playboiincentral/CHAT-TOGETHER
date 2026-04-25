@@ -125,14 +125,14 @@ struct ChatView: View {
                 }
                 
             } message: {
-                Text("Are you sure you want to Unfriend?")
+                Text("Would you like to unfriend? This can't be undone.")
             }
             .alert("You are no longer friends.", isPresented: $viewModel.showUnfriendAlert) {
                 Button("OK") {
                     dismiss()
                 }
             }
-            .alert("Block user?", isPresented: $showBlockAlert) {
+            .alert("Block User?", isPresented: $showBlockAlert) {
                 
                 Button("Cancel", role: .cancel) { }
                 
@@ -141,7 +141,7 @@ struct ChatView: View {
                 }
                 
             } message: {
-                Text("You will not be matched with this person again. This action cannot be undone.")
+                Text("You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?")
             }
             .disabled(isProcessing)
             
@@ -605,7 +605,6 @@ struct ChatView: View {
                     ForEach(reactions, id: \.self) { emoji in
                         Text(emoji)
                             .font(.largeTitle)
-                            .frame(width: 36, height: 36)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 handleReactionTap(emoji, for: message)
@@ -622,13 +621,18 @@ struct ChatView: View {
                 
                 Button {
                     replyingTo = message
+                    if message.isAI == true {
+                            if !viewModel.messageText.contains("@Tomi") {
+                                viewModel.messageText = "@Tomi " + viewModel.messageText
+                            }
+                        }
                     closeOverlay()
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "arrowshape.turn.up.left")
                         Text("Reply")
                     }
-                    .font(.title2)
+                    .font(.headline)
                     .foregroundColor(.primary)
                 }
             }
@@ -659,27 +663,17 @@ struct ChatView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .position(x: UIScreen.main.bounds.width / 2,
-                  y: selectedMessageFrame.minY - 50)
+                  y: selectedMessageFrame.minY - 65)
     }
     
     @ViewBuilder
     private func dateSeparator(for message: Message) -> some View {
         if let date = message.createdAt {
-            HStack {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.4))
-                    .frame(height: 1)
-                
                 Text(dayFormatter.string(from: date))
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.primary.opacity(0.65))
                     .padding(.horizontal, 8)
-                
-                Rectangle()
-                    .fill(Color.gray.opacity(0.4))
-                    .frame(height: 1)
-            }
-            .padding(.vertical, 8)
+                    .padding(.vertical, 8)
         }
     }
     
