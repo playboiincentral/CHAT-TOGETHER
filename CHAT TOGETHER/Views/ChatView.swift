@@ -350,13 +350,12 @@ struct ChatView: View {
                     ForEach(Array(messageItems.reversed())) { item in
                         messageRow(item)
                             .id(item.id)
-                            .rotationEffect(.degrees(180))
+                            .scaleEffect(x: 1, y: -1)
                     }
                 }
                 .padding()
             }
-            .rotationEffect(.degrees(180))
-            .scrollIndicators(.hidden)
+            .scaleEffect(x: 1, y: -1)
             .onChange(of: viewModel.messages.count) { _ in
                 guard let lastId = viewModel.messages.last?.id else { return }
                 

@@ -14,8 +14,8 @@
             filePath = "CHAT TOGETHER/Views/ChatView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "530"
-            endingLineNumber = "530"
+            startingLineNumber = "529"
+            endingLineNumber = "529"
             landmarkName = "reactionView(for:)"
             landmarkType = "7">
          </BreakpointContent>

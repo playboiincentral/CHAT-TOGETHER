@@ -847,7 +847,7 @@ exports.scanAvatar = onObjectFinalized(async (event) => {
     safe.adult === "LIKELY" ||
     safe.adult === "VERY_LIKELY" ||
     safe.violence === "LIKELY" ||
-    safe.racy === "VERY_LIKELY";
+    safe.violence === "VERY_LIKELY";
 
   if (isUnsafe) {
     await admin.storage().bucket(bucketName).file(filePath).delete();
