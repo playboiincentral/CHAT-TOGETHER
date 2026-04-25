@@ -71,7 +71,7 @@ struct ReportView: View {
             .navigationBarTitleDisplayMode(.inline)
             .overlay(alignment: .top) {
                 if showToast {
-                    Text("Report submitted")
+                    Text("Report submitted.")
                         .font(.subheadline)
                         .padding()
                         .background(Color.black.opacity(0.8))

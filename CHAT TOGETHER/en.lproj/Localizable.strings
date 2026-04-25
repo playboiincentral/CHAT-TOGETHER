@@ -112,3 +112,18 @@
 "Request" = "Request";
 "Requests" = "Requests";
 "Sent" = "Sent";
+
+// ReportView
+"Report Type *" = "Report Type *";
+"Description" = "Description";
+"Submit" = "Submit";
+"Report" = "Report";
+"Report submitted." = "Report submitted.";
+"Harassment" = "Harassment";
+"Sexual Content" = "Sexual Content";
+"Hate Speech" = "Hate Speech";
+"Spam" = "Spam";
+"Discrimination" = "Discrimination";
+"Violence" = "Violence";
+"Scam" = "Scam";
+"Other" = "Other";
