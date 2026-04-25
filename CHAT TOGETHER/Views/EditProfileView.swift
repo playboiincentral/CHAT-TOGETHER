@@ -55,39 +55,41 @@ struct EditProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                 
-                // MARK: Name
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("Display Name")
-                        .font(.headline)
-                    
-                    TextField("Enter your name", text: $fullname)
-                        .font(.system(size: 17, weight: .medium))
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.primary, lineWidth: 1.5)
-                        )
-                        .autocorrectionDisabled(true)
-                        .textInputAutocapitalization(.never)
-                        .onChange(of: fullname) { newValue in
-                            hasEdited = true
-                            let cleaned = newValue.replacingOccurrences(of: "\n", with: "")
-                            
-                            if cleaned.count > 32 {
-                                fullname = String(cleaned.prefix(32))
-                            } else {
-                                fullname = cleaned
+                VStack(alignment: .leading, spacing: 26) {
+                    // MARK: Name
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Display Name")
+                            .font(.headline)
+                        
+                        TextField("Enter your name", text: $fullname)
+                            .font(.system(size: 17, weight: .medium))
+                            .padding(.vertical, 14)
+                            .padding(.horizontal, 12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.primary, lineWidth: 1.5)
+                            )
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                            .onChange(of: fullname) { newValue in
+                                hasEdited = true
+                                let cleaned = newValue.replacingOccurrences(of: "\n", with: "")
+                                
+                                if cleaned.count > 32 {
+                                    fullname = String(cleaned.prefix(32))
+                                } else {
+                                    fullname = cleaned
+                                }
                             }
-                        }
+                    }
+                    
+                    // MARK: Gender
+                    genderSelector
+                    
+                    // MARK: Bio
+                    bioEditor
+                    
                 }
-                
-                // MARK: Gender
-                genderSelector
-                
-                // MARK: Bio
-                bioEditor
-                
             }
             .padding()
         }
