@@ -67,6 +67,9 @@ struct HomeView: View {
                     if viewModel.isMatching {
                         viewModel.stopMatching()
                     } else {
+                        let generator = UIImpactFeedbackGenerator(style: .heavy)
+                        generator.prepare()
+                        generator.impactOccurred()
                         viewModel.startMatching()
                     }
                 } label: {

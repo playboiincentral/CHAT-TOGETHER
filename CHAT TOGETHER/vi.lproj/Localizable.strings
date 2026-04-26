@@ -11,6 +11,7 @@
 "Done" = "Xong";
 "Match" = "Ghép Đôi";
 "Chat" = "Tin Nhắn";
+"Reconnecting..." = "Đang kết nối lại...";
 
 // LoginView
 "By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";

@@ -11,6 +11,7 @@
 "Done" = "Done";
 "Match" = "Match";
 "Chat" = "Chat";
+"Reconnecting..." = "Reconnecting...";
 
 // LoginView
 "By continuing, you agree to our" = "By continuing, you agree to our";
