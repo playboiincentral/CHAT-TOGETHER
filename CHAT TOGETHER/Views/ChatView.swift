@@ -29,19 +29,6 @@ struct ChatView: View {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
     }
     
-    // MARK: - Formatters
-    private let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd/yyyy"
-        return formatter
-    }()
-    
-    private let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter
-    }()
-    
     // MARK: - Reactions
     private let reactions = ["👍", "❤️", "😂", "😮", "😢", "😡"]
     
@@ -535,6 +522,13 @@ struct ChatView: View {
         )
     }
     
+    private var timeFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("j:mm")
+        return formatter
+    }
+    
     @ViewBuilder
     private func messageRow(_ item: MessageItemData) -> some View {
         
@@ -663,17 +657,6 @@ struct ChatView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .position(x: UIScreen.main.bounds.width / 2,
                   y: selectedMessageFrame.midY - 80)
-    }
-    
-    @ViewBuilder
-    private func dateSeparator(for message: Message) -> some View {
-        if let date = message.createdAt {
-            Text(dayFormatter.string(from: date))
-                .font(.caption)
-                .foregroundColor(.primary.opacity(0.65))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-        }
     }
     
     private func removeFriend() {
@@ -895,20 +878,58 @@ struct MessageItemView: View {
     
     private func shouldShowDate() -> Bool {
         guard let prev = previous else { return true }
-        guard let c = message.createdAt,
-              let p = prev.createdAt else { return true }
-        return !Calendar.current.isDate(c, inSameDayAs: p)
+        guard let currentDate = message.createdAt,
+              let prevDate = prev.createdAt else { return true }
+        
+        let diff = currentDate.timeIntervalSince(prevDate)
+        return diff >= 60 * 60
+    }
+    
+    private func timeString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("j:mm")
+        return formatter.string(from: date)
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let time = timeString(date)
+        
+        if calendar.isDateInToday(date) {
+            return time
+        }
+        
+        if calendar.isDateInYesterday(date) {
+            return "YESTERDAY \(time)"
+        }
+        
+        if let days = calendar.dateComponents([.day], from: date, to: now).day,
+           days < 7 {
+            let formatter = DateFormatter()
+            formatter.locale = Locale.current
+            formatter.setLocalizedDateFormatFromTemplate("EEE")
+            let day = formatter.string(from: date).uppercased()
+            return "\(day) \(time)"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
+        let day = formatter.string(from: date).uppercased()
+        
+        return "\(day) AT \(time)"
     }
     
     @ViewBuilder
     private func dateSeparator() -> some View {
         if let date = message.createdAt {
             HStack {
-                Rectangle().fill(Color.gray.opacity(0.4)).frame(height: 1)
-                Text(timeFormatter.string(from: date))
+                Text(formattedDate(date))
                     .font(.caption)
-                    .foregroundColor(.gray)
-                Rectangle().fill(Color.gray.opacity(0.4)).frame(height: 1)
+                    .foregroundColor(.primary.opacity(0.75))
             }
             .padding(.vertical, 8)
         }
