@@ -129,6 +129,8 @@ struct ReportDetailView: View {
                 }
                 .foregroundStyle(.orange)
                 
+                Spacer()
+                
                 Menu("Ban") {
                     Button("1 days") {
                         banUser(days: 1)

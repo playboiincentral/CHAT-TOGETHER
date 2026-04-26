@@ -31,11 +31,15 @@ struct UserRowView: View {
             
             Text(user.uid ?? "No ID")
                 .font(.caption2)
-                .foregroundColor(.gray)
+                .foregroundColor(.primary)
             
             Text(user.email)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.primary)
+            
+            Text("Warnings: \(user.warnings)")
+                .font(.caption)
+                .foregroundColor(user.warnings >= 3 ? .orange : .primary)
             
             HStack {
                 if user.status == .banned {
@@ -66,6 +70,10 @@ struct UserRowView: View {
                 }
                 
                 Menu {
+                    Button("Warn") {
+                        warnUser()
+                    }
+                    
                     Button("Delete User", role: .destructive) {
                         showDeleteAlert = true
                     }
@@ -112,6 +120,29 @@ struct UserRowView: View {
 }
 
 extension UserRowView {
+    
+    func warnUser() {
+        guard let uid = user.uid else { return }
+
+        isLoading = true
+        
+        Functions.functions(region: "asia-southeast1")
+            .httpsCallable("warnUser")
+            .call([
+                "userId": uid
+            ]) { _, error in
+                
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                
+                if let error = error {
+                    print("Warn error:", error)
+                    return
+                }
+                
+            }
+    }
     
     func banUser(days: Int) {
         guard let uid = user.uid else { return }
