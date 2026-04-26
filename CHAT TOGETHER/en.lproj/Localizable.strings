@@ -127,3 +127,8 @@
 "Violence" = "Violence";
 "Scam" = "Scam";
 "Other" = "Other";
+
+// WarningOverlay
+"You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior.";
+"⚠️ Warning" = "⚠️ Warning";
+"I understand and I won't do it again." = "I understand and I won't do it again.";

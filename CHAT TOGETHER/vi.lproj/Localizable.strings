@@ -127,3 +127,8 @@
 "Violence" = "Bạo Lực";
 "Scam" = "Lừa Đảo";
 "Other" = "Khác";
+
+// WarningOverlay
+"You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "Bạn đã vi phạm Điều khoản Dịch vụ của chúng tôi. Chúng tôi đã xử lý nội dung này. Vi phạm nhiều lần có thể dẫn đến đình chỉ tài khoản hoặc cấm vĩnh viễn. Vui lòng không lặp lại hành vi này.";
+"⚠️ Warning" = "⚠️ Cảnh Báo";
+"I understand and I won't do it again." = "Tôi đã hiểu và sẽ không tái phạm.";
