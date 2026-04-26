@@ -982,8 +982,8 @@ struct MessageRow: View {
                                     .resizable()
                                     .scaledToFill()
                                     .clipShape(Circle())
-                            } else if let partner = partner {
-                                KFImage(URL(string: partner.avatar ?? ""))
+                            } else if let partner = partner, let avatar = partner.avatar, let url = URL(string: avatar) {
+                                KFImage(url)
                                     .placeholder {
                                         ProgressView()
                                             .controlSize(.small)
@@ -998,7 +998,17 @@ struct MessageRow: View {
                                         onTapAvatar(partner)
                                     }
                             } else {
-                                Circle().fill(Color.gray.opacity(0.2))
+                                ZStack {
+                                    Circle().fill(Color.gray.opacity(0.2))
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(.gray)
+                                }
+                                .frame(width: 38, height: 38)
+                                .onTapGesture {
+                                    if let partner = partner {
+                                        onTapAvatar(partner)
+                                    }
+                                }
                             }
                         } else {
                             Color.clear
