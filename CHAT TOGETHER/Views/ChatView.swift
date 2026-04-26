@@ -23,6 +23,7 @@ struct ChatView: View {
     @State private var selectedMessageFrame: CGRect = .zero
     @Namespace private var animation
     @State private var showOverlay = false
+    @FocusState private var isInputFocused: Bool
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
@@ -45,7 +46,6 @@ struct ChatView: View {
     private let reactions = ["👍", "❤️", "😂", "😮", "😢", "😡"]
     
     @State private var selectedMessage: Message?
-    @State private var showReactionPicker = false
     @State private var showRemoveFriendAlert = false
     
     var body: some View {
@@ -161,34 +161,19 @@ struct ChatView: View {
             .overlay {
                 if let message = selectedMessage, showOverlay {
                     ZStack {
-
+                        
                         // 🔥 BACKGROUND MỜ MẠNH
                         Color.black.opacity(0.9)
                             .ignoresSafeArea()
                             .onTapGesture { closeOverlay() }
                             .transition(.opacity)
-
+                        
                         // 🔥 CONTENT BÁM THEO BUBBLE
                         overlayContent(message: message)
                     }
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showOverlay)
-            .sheet(isPresented: $showReactionPicker) {
-                if let message = selectedMessage {
-                    HStack(spacing: 25) {
-                        ForEach(reactions, id: \.self) { emoji in
-                            Text(emoji)
-                                .font(.largeTitle)
-                                .onTapGesture {
-                                    handleReactionTap(emoji, for: message)
-                                }
-                        }
-                    }
-                    .padding()
-                    .presentationDetents([.height(110)])
-                }
-            }
             .sheet(item: $selectedUser) { partner in
                 ProfileView(
                     user: partner,
@@ -265,6 +250,7 @@ struct ChatView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
+                            .lineLimit(1)
                     }
                 }
             }
@@ -418,7 +404,8 @@ struct ChatView: View {
             // 🔥 INPUT
             HStack(spacing: 8) {
                 TextField("message... (type @Tomi to ask Tomi)", text: $viewModel.messageText)
-                    .textFieldStyle(.plain) // 🔥 bỏ RoundedBorder cho đẹp hơn
+                    .textFieldStyle(.plain)
+                    .focused($isInputFocused)
                     .padding(10)
                     .background(Color(.systemGray6))
                     .cornerRadius(18)
@@ -516,9 +503,8 @@ struct ChatView: View {
             )
         }
         
-        showReactionPicker = false
     }
-        
+    
     private func insertMention(_ name: String) {
         guard let range = viewModel.messageText.range(of: "@\\w*$", options: .regularExpression) else {
             return
@@ -582,14 +568,31 @@ struct ChatView: View {
             // 🔥 ACTION BAR (reaction | reply)
             HStack {
                 HStack(spacing: 10) {
+                    let currentReaction = message.reactions?[viewModel.userId ?? ""]
                     ForEach(reactions, id: \.self) { emoji in
-                        Text(emoji)
-                            .font(.largeTitle)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                handleReactionTap(emoji, for: message)
-                                closeOverlay()
+                        VStack(spacing: 1) {
+                            
+                            Text(emoji)
+                                .font(.largeTitle)
+                            
+                            if currentReaction == emoji {
+                                Circle()
+                                    .fill(Color.primary)
+                                    .frame(width: 4, height: 4)
+                                    .transition(.scale)
+                            } else {
+                                Circle()
+                                    .fill(Color.clear)
+                                    .frame(width: 4, height: 4)
                             }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            let generator = UIImpactFeedbackGenerator(style: .heavy)
+                            generator.impactOccurred()
+                            handleReactionTap(emoji, for: message)
+                            closeOverlay()
+                        }
                     }
                 }
                 Spacer()
@@ -600,13 +603,21 @@ struct ChatView: View {
                 Spacer()
                 
                 Button {
+                    let generator = UIImpactFeedbackGenerator(style: .heavy)
+                    generator.impactOccurred()
+                    
                     replyingTo = message
                     if message.isAI == true {
-                            if !viewModel.messageText.contains("@Tomi") {
-                                viewModel.messageText = "@Tomi " + viewModel.messageText
-                            }
+                        if !viewModel.messageText.contains("@Tomi") {
+                            viewModel.messageText = "@Tomi " + viewModel.messageText
                         }
+                    }
                     closeOverlay()
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        isInputFocused = true
+                    }
+                    
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "arrowshape.turn.up.left")
@@ -643,17 +654,17 @@ struct ChatView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .position(x: UIScreen.main.bounds.width / 2,
-                  y: selectedMessageFrame.minY - 65)
+                  y: selectedMessageFrame.midY - 80)
     }
     
     @ViewBuilder
     private func dateSeparator(for message: Message) -> some View {
         if let date = message.createdAt {
-                Text(dayFormatter.string(from: date))
-                    .font(.caption)
-                    .foregroundColor(.primary.opacity(0.65))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 8)
+            Text(dayFormatter.string(from: date))
+                .font(.caption)
+                .foregroundColor(.primary.opacity(0.65))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
         }
     }
     
@@ -662,7 +673,7 @@ struct ChatView: View {
         guard !isProcessing else { return }
         
         isProcessing = true
-                
+        
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             
             DispatchQueue.main.async {
@@ -693,7 +704,7 @@ struct ChatView: View {
     
     private func sendOrCancelRequest() {
         guard let partnerId = viewModel.partner?.uid else { return }
-                
+        
         // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
             
@@ -732,7 +743,7 @@ struct ChatView: View {
     func acceptRequest() {
         guard let partnerId = viewModel.partner?.uid,
               let requestId = relationManager.requestId(from: partnerId) else { return }
-                
+        
         // 🚀 1. UPDATE UI NGAY (optimistic)
         relationManager.markAsFriendLocally(with: partnerId)
         
@@ -965,7 +976,7 @@ struct MessageRow: View {
                         }
                     }
                     .frame(width: 38, height: 38)
-
+                    
                     bubble
                     Spacer()
                 }
@@ -996,10 +1007,7 @@ struct MessageRow: View {
             }
         )
         .onPreferenceChange(MessageFrameKey.self) { value in
-            self.currentFrame = value
-        }
-        .onLongPressGesture {
-            onLongPress(message, currentFrame)
+                self.currentFrame = value
         }
     }
     
@@ -1010,28 +1018,28 @@ struct MessageRow: View {
         ) {
             
             if !isOverlay, let reply = message.replyPreview {
-                    Text(reply)
-                        .foregroundColor(.primary.opacity(0.6))
-                        .lineLimit(2)
-                        .padding(15)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .onTapGesture {
-                            onTapReply(message)
-                        }
+                Text(reply)
+                    .foregroundColor(.primary.opacity(0.6))
+                    .lineLimit(2)
+                    .padding(15)
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .onTapGesture {
+                        onTapReply(message)
+                    }
             }
             
             // 💬 BUBBLE
-                Text(message.text)
-                    .foregroundColor(isCurrentUser ? .white : .primary)
-                    .padding(15)
-                    .background(isCurrentUser ? Color.pink : Color(.systemGray5))
-                    .clipShape(bubbleShape)
-                    .matchedGeometryEffect(
-                        id: message.id,
-                        in: namespace,
-                        isSource: !isOverlay
-                    )
+            Text(message.text)
+                .foregroundColor(isCurrentUser ? .white : .primary)
+                .padding(15)
+                .background(isCurrentUser ? Color.pink : Color(.systemGray5))
+                .clipShape(bubbleShape)
+                .matchedGeometryEffect(
+                    id: message.id,
+                    in: namespace,
+                    isSource: !isOverlay
+                )
         }
         .overlay(alignment: isCurrentUser ? .bottomTrailing : .bottomLeading) {
             if let display = reactionDisplay(for: message), !isOverlay {
@@ -1058,7 +1066,11 @@ struct MessageRow: View {
                 }
             }
         }
-        .contentShape(Rectangle())
+        .onLongPressGesture {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            onLongPress(message, currentFrame)
+        }
         .background(
             isHighlighted ? Color.yellow.opacity(0.3) : Color.clear
         )
@@ -1068,6 +1080,11 @@ struct MessageRow: View {
         guard let reactions = message.reactions else { return nil }
         
         let values = Array(reactions.values)
+        
+        if values.isEmpty {
+            return nil
+        }
+        
         let unique = Array(Set(values))
         
         if unique.count == 1 {
