@@ -62,9 +62,12 @@ struct WaitingView: View {
                 .frame(width: 80, height: 80)
                 .clipShape(Circle())
         } else {
-            Circle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 80, height: 80)
+            ZStack {
+                Circle().fill(Color.gray.opacity(0.2))
+                Image(systemName: "person.fill")
+                    .foregroundColor(.gray)
+            }
+            .frame(width: 80, height: 80)
         }
     }
 }

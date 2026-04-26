@@ -69,9 +69,11 @@
 // EditProfileView
 "Change Avatar" = "Change Avatar";
 "Display Name" = "Display Name";
+"Enter Display Name" = "Enter Display Name";
 "Gender" = "Gender";
 "Woman" = "Woman";
 "Man" = "Man";
+"Selecting your gender will determine who you are matched with." = "Selecting your gender will determine who you are matched with.";
 "Bio" = "Bio";
 "Select" = "Select";
 "Save" = "Save";

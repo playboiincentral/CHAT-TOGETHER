@@ -233,18 +233,26 @@ struct ChatView: View {
                     selectedUser = viewModel.partner
                 } label: {
                     HStack(spacing: 10) {
-                        
-                        KFImage(URL(string: partner.avatar ?? ""))
-                            .placeholder {
-                                ProgressView()
-                                    .controlSize(.small)
+                        if let avatar = partner.avatar, let url = URL(string: avatar) {
+                            KFImage(url)
+                                .placeholder {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                }
+                                .retry(maxCount: 2, interval: .seconds(1))
+                                .cacheOriginalImage(true)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 36, height: 36)
+                                .clipShape(Circle())
+                        } else {
+                            ZStack {
+                                Circle().fill(Color.gray.opacity(0.2))
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(.gray)
                             }
-                            .retry(maxCount: 2, interval: .seconds(1))
-                            .cacheOriginalImage(true)
-                            .resizable()
-                            .scaledToFill()
                             .frame(width: 36, height: 36)
-                            .clipShape(Circle())
+                        }
                         
                         Text(partner.fullname)
                             .font(.headline)

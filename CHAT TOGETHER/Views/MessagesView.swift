@@ -167,22 +167,26 @@ struct FriendCard: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            KFImage(URL(string: friend.avatar ?? ""))
-                .placeholder {
-                    ProgressView()
-                        .controlSize(.small)
+            if let avatar = friend.avatar, let url = URL(string: avatar) {
+                KFImage(url)
+                    .placeholder {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    .retry(maxCount: 2, interval: .seconds(1))
+                    .cacheOriginalImage(true)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 130)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 15).fill(Color.gray.opacity(0.2))
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.gray)
                 }
-                .retry(maxCount: 2, interval: .seconds(1))
-                .cacheOriginalImage(true)
-                .resizable()
-                .scaledToFill()
                 .frame(width: 100, height: 130)
-                .clipShape(RoundedRectangle(cornerRadius: 15))
-            
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 15)
-//                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-//            )
+            }
             
             Text(friend.fullname)
                 .font(.system(size: 12, weight: .medium))

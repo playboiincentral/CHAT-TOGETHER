@@ -69,9 +69,11 @@
 // EditProfileView
 "Change Avatar" = "Đổi Ảnh Đại Diện";
 "Display Name" = "Tên Hiển Thị";
+"Enter Display Name" = "Nhập Tên Hiển Thị";
 "Gender" = "Giới Tính";
 "Woman" = "Nữ";
 "Man" = "Nam";
+"Selecting your gender will determine who you are matched with." = "Việc lựa chọn giới tính sẽ quyết định bạn ghép đôi với ai.";
 "Bio" = "Tiểu Sử";
 "Select" = "Chọn";
 "Save" = "Lưu";

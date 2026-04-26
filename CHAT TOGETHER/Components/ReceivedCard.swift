@@ -9,21 +9,32 @@ struct ReceivedCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ZStack(alignment: .bottomTrailing) {
-                
-                KFImage(URL(string: user.avatar ?? ""))
-                    .placeholder {
-                        ProgressView()
-                            .controlSize(.small)
+                if let avatar = user.avatar, let url = URL(string: avatar) {
+                    KFImage(url)
+                        .placeholder {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        .retry(maxCount: 2, interval: .seconds(1))
+                        .cacheOriginalImage(true)
+                        .resizable()
+                        .scaledToFill()
+                        .aspectRatio(3/4, contentMode: .fill)
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .frame(height: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .contentShape(RoundedRectangle(cornerRadius: 20))
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20).fill(Color.gray.opacity(0.2))
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.gray)
                     }
-                    .retry(maxCount: 2, interval: .seconds(1))
-                    .cacheOriginalImage(true)
-                    .resizable()
-                    .scaledToFill()
                     .aspectRatio(3/4, contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity)
                     .frame(height: 220)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     .contentShape(RoundedRectangle(cornerRadius: 20))
+                }
                 
                 HStack(spacing: 10) {
                     Button(action: rejectAction) {

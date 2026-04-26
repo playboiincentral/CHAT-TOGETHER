@@ -28,17 +28,26 @@ struct MessageCard: View {
         HStack(spacing: 9) {
             
             // MARK: - Avatar
-            KFImage(URL(string: partner?.avatar ?? ""))
-                .placeholder {
-                    ProgressView()
-                        .controlSize(.small)
+            if let avatar = partner?.avatar, let url = URL(string: avatar) {
+                KFImage(url)
+                    .placeholder {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    .retry(maxCount: 2, interval: .seconds(1))
+                    .cacheOriginalImage(true)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 72, height: 72)
+                    .clipShape(Circle())
+            } else {
+                ZStack {
+                    Circle().fill(Color.gray.opacity(0.2))
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.gray)
                 }
-                .retry(maxCount: 2, interval: .seconds(1))
-                .cacheOriginalImage(true)
-                .resizable()
-                .scaledToFill()
                 .frame(width: 72, height: 72)
-                .clipShape(Circle())
+            }
             
             // MARK: - Name + Message
             VStack(alignment: .leading, spacing: 8) {

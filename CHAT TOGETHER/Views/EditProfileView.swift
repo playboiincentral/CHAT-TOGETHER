@@ -61,7 +61,7 @@ struct EditProfileView: View {
                         Text("Display Name")
                             .font(.headline)
                         
-                        TextField("Enter your name", text: $fullname)
+                        TextField("Enter Display Name", text: $fullname)
                             .font(.system(size: 17, weight: .medium))
                             .padding(.vertical, 14)
                             .padding(.horizontal, 12)
