@@ -193,12 +193,12 @@ struct ChatView: View {
             .confirmationDialog("Options", isPresented: $showMoreSheet) {
                 
                 if viewModel.room.type == .friend {
-                    Button("Unfriend", role: .destructive) {
+                    Button("Unfriend") {
                         showRemoveFriendAlert = true
                     }
                 }
                 
-                Button("Block", role: .destructive) {
+                Button("Block") {
                     showBlockAlert = true
                 }
                 
