@@ -40,8 +40,8 @@ struct HomeView: View {
                         Button {
                             showProfileSheet = true
                         } label: {
-                                avatarView
-                            }
+                            avatarView
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -65,19 +65,20 @@ struct HomeView: View {
                     guard !viewModel.isCheckingRoom else { return }
                     
                     if viewModel.isMatching {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
                         viewModel.stopMatching()
                     } else {
                         let generator = UIImpactFeedbackGenerator(style: .heavy)
-                        generator.prepare()
                         generator.impactOccurred()
                         viewModel.startMatching()
                     }
                 } label: {
                     HStack {
                         Image(systemName:
-                            viewModel.isCheckingRoom
-                            ? "hourglass"
-                            : (viewModel.isMatching ? "xmark.circle.fill" : "heart.fill")
+                                viewModel.isCheckingRoom
+                              ? "hourglass"
+                              : (viewModel.isMatching ? "xmark.circle.fill" : "heart.fill")
                         )
                         
                         Text(

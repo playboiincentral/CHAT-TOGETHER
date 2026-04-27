@@ -41,6 +41,10 @@ struct RequestsView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .onChange(of: selectedTab) { _ in
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                }
                 
                 ScrollView {
                     VStack {

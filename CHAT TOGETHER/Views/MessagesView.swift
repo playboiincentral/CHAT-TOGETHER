@@ -29,6 +29,8 @@ struct MessagesView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
                                 Button {
+                                    let generator = UIImpactFeedbackGenerator(style: .heavy)
+                                    generator.impactOccurred()
                                     selectedTab = 1
                                 } label: {
                                     RequestsCard(count: relationManager.receivedRequests.count)
