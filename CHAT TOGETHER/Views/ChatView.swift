@@ -24,6 +24,7 @@ struct ChatView: View {
     @Namespace private var animation
     @State private var showOverlay = false
     @FocusState private var isInputFocused: Bool
+    @State private var showCopiedToast = false
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
@@ -161,6 +162,27 @@ struct ChatView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showOverlay)
+            .overlay {
+                if showCopiedToast {
+                    VStack {
+                        Spacer()
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Copied")
+                        }
+                        .font(.footnote)
+                        .foregroundColor(.primary)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                        .padding(.bottom, 60)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+            }
             .sheet(item: $selectedUser) { partner in
                 ProfileView(
                     user: partner,
@@ -547,6 +569,11 @@ struct ChatView: View {
     }
     
     @ViewBuilder
+    private func bottomBubbleMenu(_ message: Message) -> some View {
+        
+    }
+    
+    @ViewBuilder
     private func messageRow(_ item: MessageItemData) -> some View {
         
         MessageItemView(
@@ -582,98 +609,189 @@ struct ChatView: View {
         
         let bubbleWidth: CGFloat = 260
         
-        VStack(spacing: 5) {
-            
-            // 🔥 ACTION BAR (reaction | reply)
-            HStack {
-                HStack(spacing: 10) {
-                    let currentReaction = message.reactions?[viewModel.userId ?? ""]
-                    ForEach(reactions, id: \.self) { emoji in
-                        VStack(spacing: 1) {
-                            
-                            Text(emoji)
-                                .font(.largeTitle)
-                            
-                            if currentReaction == emoji {
-                                Circle()
-                                    .fill(Color.primary)
-                                    .frame(width: 4, height: 4)
-                                    .transition(.scale)
-                            } else {
-                                Circle()
-                                    .fill(Color.clear)
-                                    .frame(width: 4, height: 4)
+        ZStack {
+            VStack(spacing: 5) {
+                
+                // 🔥 ACTION BAR (reaction | reply)
+                HStack {
+                    HStack(spacing: 10) {
+                        let currentReaction = message.reactions?[viewModel.userId ?? ""]
+                        ForEach(reactions, id: \.self) { emoji in
+                            VStack(spacing: 1) {
+                                
+                                Text(emoji)
+                                    .font(.largeTitle)
+                                
+                                if currentReaction == emoji {
+                                    Circle()
+                                        .fill(Color.primary)
+                                        .frame(width: 4, height: 4)
+                                        .transition(.scale)
+                                } else {
+                                    Circle()
+                                        .fill(Color.clear)
+                                        .frame(width: 4, height: 4)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                let generator = UIImpactFeedbackGenerator(style: .heavy)
+                                generator.impactOccurred()
+                                handleReactionTap(emoji, for: message)
+                                closeOverlay()
                             }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            let generator = UIImpactFeedbackGenerator(style: .heavy)
-                            generator.impactOccurred()
-                            handleReactionTap(emoji, for: message)
-                            closeOverlay()
+                    }
+                    
+                    Spacer()
+                    
+                    Divider()
+                        .frame(height: 20)
+                    
+                    Spacer()
+                    
+                    Button {
+                        let generator = UIImpactFeedbackGenerator(style: .heavy)
+                        generator.impactOccurred()
+                        
+                        replyingTo = message
+                        if message.isAI == true {
+                            if !viewModel.messageText.contains("@Tomi") {
+                                viewModel.messageText = "@Tomi " + viewModel.messageText
+                            }
                         }
+                        closeOverlay()
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                            isInputFocused = true
+                        }
+                        
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrowshape.turn.up.left")
+                            Text("Reply")
+                        }
+                            .font(.headline)
+                            .foregroundColor(.primary)
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+                
+                // 💬 BUBBLE
+                MessageRow(
+                    message: message,
+                    isCurrentUser: message.senderId == viewModel.userId,
+                    partner: viewModel.partner,
+                    timeFormatter: timeFormatter,
+                    showAvatar: false,
+                    position: .single,
+                    onTapAvatar: { _ in },
+                    namespace: animation,
+                    isOverlay: true,
+                    isDimmed: false,
+                    onLongPress: { _, _ in },
+                    onTapReaction: { _ in },
+                    onTapReply: { _ in },
+                    isHighlighted: false
+                )
+                .frame(width: bubbleWidth)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .position(x: UIScreen.main.bounds.width / 2,
+                      y: selectedMessageFrame.midY - 80)
+            
+            VStack(spacing: 8) {
                 Spacer()
                 
-                Divider()
-                    .frame(height: 20)
-                
-                Spacer()
+                if let date = message.createdAt {
+                        HStack {
+                            if message.senderId == viewModel.userId && message.isAI != true {
+                                Spacer()
+                            }
+                            
+                            Text(overlayFormattedDate(date))
+                                .font(.caption)
+                                .foregroundColor(.primary.opacity(0.7))
+                            
+                            if message.senderId != viewModel.userId || message.isAI == true {
+                                Spacer()
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
                 
                 Button {
-                    let generator = UIImpactFeedbackGenerator(style: .heavy)
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
                     generator.impactOccurred()
-                    
-                    replyingTo = message
-                    if message.isAI == true {
-                        if !viewModel.messageText.contains("@Tomi") {
-                            viewModel.messageText = "@Tomi " + viewModel.messageText
-                        }
-                    }
+                    UIPasteboard.general.string = message.text
+                    showCopiedToastWithAnimation()
                     closeOverlay()
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        isInputFocused = true
-                    }
-                    
                 } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrowshape.turn.up.left")
-                        Text("Reply")
+                    HStack {
+                        Image(systemName: "doc.on.doc")
+                        Text("Copy")
                     }
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(16)
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            
-            // 💬 BUBBLE
-            MessageRow(
-                message: message,
-                isCurrentUser: message.senderId == viewModel.userId,
-                partner: viewModel.partner,
-                timeFormatter: timeFormatter,
-                showAvatar: false,
-                position: .single,
-                onTapAvatar: { _ in },
-                namespace: animation,
-                isOverlay: true,
-                isDimmed: false,
-                onLongPress: { _, _ in },
-                onTapReaction: { _ in },
-                onTapReply: { _ in },
-                isHighlighted: false
-            )
-            .frame(width: bubbleWidth)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .position(x: UIScreen.main.bounds.width / 2,
-                  y: selectedMessageFrame.midY - 80)
+    }
+    
+    private func showCopiedToastWithAnimation() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            showCopiedToast = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeOut(duration: 0.25)) {
+                showCopiedToast = false
+            }
+        }
+    }
+    
+    private func overlayFormattedDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let formatterTime = DateFormatter()
+        formatterTime.locale = Locale.current
+        formatterTime.setLocalizedDateFormatFromTemplate("j:mm")
+        let time = formatterTime.string(from: date)
+        
+        if calendar.isDateInToday(date) {
+            return time
+        }
+        
+        if calendar.isDateInYesterday(date) {
+            return "YESTERDAY \(time)"
+        }
+        
+        if let days = calendar.dateComponents([.day], from: date, to: now).day,
+           days < 7 {
+            let formatter = DateFormatter()
+            formatter.locale = Locale.current
+            formatter.setLocalizedDateFormatFromTemplate("EEE")
+            let day = formatter.string(from: date).uppercased()
+            return "\(day) \(time)"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
+        let day = formatter.string(from: date).uppercased()
+        
+        return "\(day) AT \(time)"
     }
     
     private func removeFriend() {
