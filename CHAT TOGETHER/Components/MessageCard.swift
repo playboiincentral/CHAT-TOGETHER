@@ -72,7 +72,7 @@ struct MessageCard: View {
             if let date = room.lastMessageAt?.dateValue() {
                 VStack(alignment: .trailing, spacing: 6) {
                     
-                    Text(timeString(from: date))
+                    Text(formattedDate(date))
                         .font(.system(size: 14))
                         .fontWeight(isMyLastMessage ? .regular : (isUnread ? .semibold : .regular))
                         .foregroundColor(isMyLastMessage ? .secondary : (isUnread ? .primary : .secondary))
@@ -103,15 +103,41 @@ extension MessageCard {
         }
     }
     
-    private func timeString(from date: Date) -> String {
+    private func timeString(_ date: Date) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("j:mm")
+        return formatter.string(from: date)
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
         
-        if Calendar.current.isDateInToday(date) {
-            formatter.dateFormat = "HH:mm"
-        } else {
-            formatter.dateFormat = "MM/dd"
+        let time = timeString(date)
+        
+        if calendar.isDateInToday(date) {
+            return time
         }
         
-        return formatter.string(from: date)
+        if calendar.isDateInYesterday(date) {
+            return "YESTERDAY \(time)"
+        }
+        
+        if let days = calendar.dateComponents([.day], from: date, to: now).day,
+           days < 7 {
+            let formatter = DateFormatter()
+            formatter.locale = Locale.current
+            formatter.setLocalizedDateFormatFromTemplate("EEE")
+            let day = formatter.string(from: date).uppercased()
+            return "\(day) \(time)"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
+        let day = formatter.string(from: date).uppercased()
+        
+        return "\(day) AT \(time)"
     }
 }
