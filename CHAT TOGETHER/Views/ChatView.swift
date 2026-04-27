@@ -368,7 +368,7 @@ struct ChatView: View {
                 HStack {
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Replying to")
+                        Text(replyingLabel(for: reply))
                             .font(.subheadline)
                             .foregroundColor(.primary)
                         
@@ -391,8 +391,6 @@ struct ChatView: View {
                 }
                 .padding(.vertical, 6)
                 .padding(.horizontal, 10)
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
                 .padding(.horizontal)
             }
             
@@ -431,6 +429,25 @@ struct ChatView: View {
         }
         .padding(.vertical, 6)
         .background(Color(.systemBackground))
+    }
+    
+    private func replyingLabel(for message: Message) -> String {
+        // AI
+        if message.isAI == true {
+            return "Replying to Tomi"
+        }
+        
+        // Myself
+        if message.senderId == viewModel.userId {
+            return "Replying to yourself"
+        }
+        
+        // Partner
+        if let partner = viewModel.partner {
+            return "Replying to \(partner.fullname)"
+        }
+        
+        return "Replying"
     }
     
     private var messageItems: [MessageItemData] {
