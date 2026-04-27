@@ -536,7 +536,6 @@ struct ChatView: View {
                 emoji: emoji
             )
         }
-        
     }
     
     private func insertMention(_ name: String) {
@@ -561,18 +560,6 @@ struct ChatView: View {
         )
     }
     
-    private var timeFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.setLocalizedDateFormatFromTemplate("j:mm")
-        return formatter
-    }
-    
-    @ViewBuilder
-    private func bottomBubbleMenu(_ message: Message) -> some View {
-        
-    }
-    
     @ViewBuilder
     private func messageRow(_ item: MessageItemData) -> some View {
         
@@ -581,7 +568,6 @@ struct ChatView: View {
             previous: item.previous,
             next: item.next,
             viewModel: viewModel,
-            timeFormatter: timeFormatter,
             onTapAvatar: { selectedUser = $0 },
             namespace: animation,
             onLongPress: { msg, frame in
@@ -686,7 +672,6 @@ struct ChatView: View {
                     message: message,
                     isCurrentUser: message.senderId == viewModel.userId,
                     partner: viewModel.partner,
-                    timeFormatter: timeFormatter,
                     showAvatar: false,
                     position: .single,
                     onTapAvatar: { _ in },
@@ -947,10 +932,7 @@ struct MessageItemView: View {
     let message: Message
     let previous: Message?
     let next: Message?
-    
     let viewModel: ChatViewModel
-    let timeFormatter: DateFormatter
-    
     let onTapAvatar: (AppUser) -> Void
     let namespace: Namespace.ID
     let onLongPress: (Message, CGRect) -> Void
@@ -973,7 +955,6 @@ struct MessageItemView: View {
                 message: message,
                 isCurrentUser: message.senderId == viewModel.userId,
                 partner: viewModel.partner,
-                timeFormatter: timeFormatter,
                 showAvatar: showAvatar,
                 position: position,
                 onTapAvatar: onTapAvatar,
@@ -1082,7 +1063,6 @@ struct MessageRow: View {
     let message: Message
     let isCurrentUser: Bool
     let partner: AppUser?
-    let timeFormatter: DateFormatter
     let showAvatar: Bool
     let position: MessagePosition
     
@@ -1154,21 +1134,6 @@ struct MessageRow: View {
                     bubble
                     Spacer()
                 }
-            }
-            
-            HStack {
-                if isCurrentUser { Spacer() }
-                
-                if !isOverlay,
-                   let date = message.createdAt,
-                   position == .bottom || position == .single {
-                    
-                    Text(timeFormatter.string(from: date))
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                }
-                
-                if !isCurrentUser { Spacer() }
             }
         }
         .overlay(
