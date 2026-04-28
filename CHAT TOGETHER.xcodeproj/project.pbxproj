@@ -16,6 +16,7 @@
 		8D87A3892F3F413A009982CA /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 8D87A3882F3F413A009982CA /* GoogleSignIn */; };
 		8D87A38B2F3F413A009982CA /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 8D87A38A2F3F413A009982CA /* GoogleSignInSwift */; };
 		8D8DDBA52F9B509800161739 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8D8DDBA42F9B509800161739 /* Kingfisher */; };
+		8D8DDE832F9FBCBC00161739 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 8D8DDE822F9FBCBC00161739 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 			files = (
 				8D87A2E32F3EF942009982CA /* FirebaseAnalytics in Frameworks */,
 				8D87A2EC2F3EF9FE009982CA /* FirebaseCore in Frameworks */,
+				8D8DDE832F9FBCBC00161739 /* FirebaseMessaging in Frameworks */,
 				8D87A38B2F3F413A009982CA /* GoogleSignInSwift in Frameworks */,
 				8D8DDBA52F9B509800161739 /* Kingfisher in Frameworks */,
 				8D5D8DBE2F54D9FC00C60A83 /* FirebaseFunctions in Frameworks */,
@@ -103,6 +105,7 @@
 				8D87A38A2F3F413A009982CA /* GoogleSignInSwift */,
 				8D5D8DBD2F54D9FC00C60A83 /* FirebaseFunctions */,
 				8D8DDBA42F9B509800161739 /* Kingfisher */,
+				8D8DDE822F9FBCBC00161739 /* FirebaseMessaging */,
 			);
 			productName = "CHAT TOGETHER";
 			productReference = 8D87A2D12F3EF797009982CA /* CHAT TOGETHER.app */;
@@ -298,6 +301,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "CHAT TOGETHER/CHAT TOGETHER.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8UBLGP35F4;
@@ -320,6 +324,7 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.playboiincentral.CHAT-TOGETHER";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -335,6 +340,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "CHAT TOGETHER/CHAT TOGETHER.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8UBLGP35F4;
@@ -357,6 +363,7 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.playboiincentral.CHAT-TOGETHER";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -461,6 +468,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8D8DDBA32F9B509800161739 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		8D8DDE822F9FBCBC00161739 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D87A2E12F3EF942009982CA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

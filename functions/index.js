@@ -771,18 +771,24 @@ if (history.length > 0) {
           model: "gpt-5.4-mini",
           input: [
             {
-  role: "system",
-  content: `
-You are Tomi in a group chat.
+              role: "system",
+              content: `
+              You are Tomi in a group chat.
 
-- Multiple users are talking
-- Always reply to the LAST user message
-- Reply like a normal chat message
-- You can mention other users naturally if needed
-- Keep replies short, casual, Gen Z style
-- Reply in same language as the conversation
-`
-},
+              - Multiple users are talking
+              - Always reply to the LAST user message
+              - Reply like a real human texting in a chaotic group chat
+              - Use a casual Gen Z tone, natural and unfiltered
+              - Be slightly goofy, playful, and a bit chaotic
+              - You can tease or lightly roast other users (keep it harmless, not toxic)
+              - React naturally with expressions like “??”, “bro what”, “nahh”, “lol”, “wtf”, “💀”, “😭”, “🗿”
+              - Occasionally exaggerate reactions for humor
+              - Feel free to go slightly off-topic in a funny way, as long as it still connects to the conversation
+              - Keep replies short and chat-like, not formal or structured
+              - Match the language of the conversation automatically
+              - Do not be overly polite or robotic
+              `
+            },
             ...history
           ]
         })
@@ -1233,3 +1239,78 @@ exports.setAdminStatus = onCall(async (request) => {
 
   return { success: true };
 });
+
+exports.sendMessageNotification = onDocumentCreated(
+  "chatRooms/{roomId}/messages/{messageId}",
+  async (event) => {
+
+    const data = event.data.data();
+    if (!data) return;
+
+    // ❌ không gửi notification cho AI
+    if (data.isAI) return;
+
+    const senderId = data.senderId;
+    const text = data.text || "Bạn có tin nhắn mới";
+    const roomId = event.params.roomId;
+
+    // =========================
+    // 🔥 LẤY SENDER INFO
+    // =========================
+    const senderSnap = await db.collection("users").doc(senderId).get();
+    const senderName = senderSnap.data()?.fullName || "Someone";
+
+    // =========================
+    // 🔥 LẤY ROOM
+    // =========================
+    const roomRef = db.collection("chatRooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+
+    if (!roomSnap.exists) return;
+
+    const room = roomSnap.data();
+
+    if (room.type !== "friend") return;
+
+    const users = room.users || [];
+
+    // =========================
+    // 🔥 TÌM RECEIVER
+    // =========================
+    const receiverId = users.find(uid => uid !== senderId);
+    if (!receiverId) return;
+
+    // =========================
+    // 🔥 LẤY TOKEN
+    // =========================
+    const userSnap = await db.collection("users").doc(receiverId).get();
+    const token = userSnap.data()?.fcmToken;
+
+    if (!token) {
+      console.log("❌ No FCM token for user:", receiverId);
+      return;
+    }
+
+    // =========================
+    // 🔥 GỬI FCM
+    // =========================
+    try {
+      await admin.messaging().send({
+        token: token,
+        notification: {
+          title: senderName,
+          body: text.length > 100 ? text.substring(0, 100) + "..." : text
+        },
+        data: {
+          roomId: roomId,
+          senderId: senderId
+        }
+      });
+
+      console.log("✅ Notification sent to:", receiverId);
+
+    } catch (error) {
+      console.error("❌ FCM error:", error);
+    }
+  }
+);

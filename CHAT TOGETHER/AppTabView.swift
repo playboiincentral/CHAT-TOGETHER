@@ -8,24 +8,24 @@
 import SwiftUI
 
 struct AppTabView: View {
-    @State private var selectedTab: Int = 0
+    @EnvironmentObject private var router: AppRouter
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $router.selectedTab) {
             HomeView()
                 .tabItem {
-                    Image(systemName: selectedTab == 0 ? "heart.fill" : "heart")
+                    Image(systemName: router.selectedTab == 0 ? "heart.fill" : "heart")
                     Text("Match")
                 }
                 .tag(0)
             RequestsView()
                 .tabItem {
-                    Image(systemName: selectedTab == 1 ? "person.badge.plus.fill" : "person.badge.plus")
+                    Image(systemName: router.selectedTab == 1 ? "person.badge.plus.fill" : "person.badge.plus")
                     Text("Requests")
                 }
                 .tag(1)
-            MessagesView(selectedTab: $selectedTab)
+            MessagesView()
                 .tabItem {
-                    Image(systemName: selectedTab == 2 ? "message.fill" : "message")
+                    Image(systemName: router.selectedTab == 2 ? "message.fill" : "message")
                     Text("Chat")
                 }
                 .tag(2)

@@ -73,7 +73,7 @@ struct MessageCard: View {
                 VStack(alignment: .trailing, spacing: 6) {
                     
                     Text(formattedDate(date))
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .fontWeight(isMyLastMessage ? .regular : (isUnread ? .semibold : .regular))
                         .foregroundColor(isMyLastMessage ? .secondary : (isUnread ? .primary : .secondary))
                     

@@ -5,7 +5,7 @@ import FirebaseFirestore
 import FirebaseFunctions
 
 struct MessagesView: View {
-    @Binding var selectedTab: Int
+    @EnvironmentObject private var router: AppRouter
     @StateObject private var friendsVM = FriendsViewModel()
     @State private var isLoading = false
     @State private var selectedRoom: ChatRoom?
@@ -31,7 +31,7 @@ struct MessagesView: View {
                                 Button {
                                     let generator = UIImpactFeedbackGenerator(style: .heavy)
                                     generator.impactOccurred()
-                                    selectedTab = 1
+                                    router.selectedTab = 1
                                 } label: {
                                     RequestsCard(count: relationManager.receivedRequests.count)
                                 }
@@ -61,20 +61,20 @@ struct MessagesView: View {
                         }
                         
                         ForEach(friendsVM.roomsWithMessage, id: \.roomId) { room in
-                            
-                            let partner = friendsVM.partners[room.roomId]
-                            
-                            Button {
-                                selectedRoom = room
-                                triggeredByUser = true
-                                showChat = true
-                            } label: {
-                                MessageCard(
-                                    room: room,
-                                    currentUserId: Auth.auth().currentUser?.uid ?? "",
-                                    partner: partner
-                                )
-                            }
+                                                            
+                                let partner = friendsVM.partners[room.roomId]
+                                
+                                Button {
+                                    selectedRoom = room
+                                    triggeredByUser = true
+                                    showChat = true
+                                } label: {
+                                    MessageCard(
+                                        room: room,
+                                        currentUserId: Auth.auth().currentUser?.uid ?? "",
+                                        partner: partner
+                                    )
+                                }
                         }
                     }
                 }
@@ -85,8 +85,8 @@ struct MessagesView: View {
             .onAppear {
                 friendsVM.fetchFriends()
                 friendsVM.listenRooms()
+                handlePendingRoom()
             }
-            
             .fullScreenCover(isPresented: Binding(
                 get: { showChat && triggeredByUser },
                 set: { showChat = $0 }
@@ -159,6 +159,29 @@ struct MessagesView: View {
                         print("create room error:", error)
                     }
                 }
+        }
+    }
+    
+    private func handlePendingRoom() {
+        
+        guard let roomId = router.pendingRoomId else { return }
+        
+        // retry nhẹ vì Firestore có thể chưa load xong
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            
+            if let room = friendsVM.rooms.first(where: {
+                $0.roomId == roomId
+            }) {
+                selectedRoom = room
+                triggeredByUser = true
+                showChat = true
+                router.pendingRoomId = nil
+            } else {
+                // retry lần 2 (an toàn)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self.handlePendingRoom()
+                }
+            }
         }
     }
 }
