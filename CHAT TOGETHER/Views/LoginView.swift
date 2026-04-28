@@ -17,9 +17,9 @@ struct LoginView: View {
             
             // Background
             LinearGradient(
-                colors: [.pink, .pink, .pink],
-                startPoint: .top,
-                endPoint: .bottom
+                colors: [.pink, .pink, .red],
+                startPoint: .bottomLeading,
+                endPoint: .topTrailing
             )
             .ignoresSafeArea()
             
