@@ -89,6 +89,7 @@
 "Processing..." = "Đang xử lý...";
 "Replying to" = "Trả lời";
 "message... (type @Tomi to ask Tomi)" = "tin nhắn... (gõ @Tomi để hỏi Tomi)";
+"Tomi is typing" = "Tomi đang gõ";
 
 // SettingsView
 "Appearance" = "Giao Diện";

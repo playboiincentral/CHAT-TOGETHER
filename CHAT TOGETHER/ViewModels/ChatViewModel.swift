@@ -20,6 +20,7 @@ class ChatViewModel: ObservableObject {
     private var pendingMessages: [(text: String, reply: Message?)] = []
     @Published var room: ChatRoom
     private var heartbeatTimer: Timer?
+    @Published var isAITyping: Bool = false
     
     var userId: String? {
         Auth.auth().currentUser?.uid
@@ -130,7 +131,7 @@ class ChatViewModel: ObservableObject {
                 let documents = snapshot.documents
                 
                 DispatchQueue.main.async {
-                    self.messages = documents.map { doc in
+                    let newMessages = documents.map { doc -> Message in
                         let timestamp = doc["createdAt"] as? Timestamp
                         let isAI = doc["isAI"] as? Bool ?? false
                         
@@ -148,6 +149,12 @@ class ChatViewModel: ObservableObject {
                             replyPreview: doc["replyPreview"] as? String
                         )
                     }
+                    
+                    if let last = newMessages.last, last.isAI == true {
+                        self.isAITyping = false
+                    }
+                    
+                    self.messages = newMessages
                 }
             }
     }
@@ -248,7 +255,13 @@ class ChatViewModel: ObservableObject {
     func sendMessage(replyTo: Message?) {
         let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-
+        
+        if trimmed.range(of: "@tomi", options: .caseInsensitive) != nil {
+                DispatchQueue.main.async {
+                    self.isAITyping = true
+                }
+            }
+        
         messageText = ""
 
         guard isRoomActive else {

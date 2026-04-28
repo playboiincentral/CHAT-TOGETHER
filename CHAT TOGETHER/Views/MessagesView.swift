@@ -248,9 +248,10 @@ struct RequestsCard: View {
             }
             .frame(width: 100, height: 130)
             
-            Text("Requests")
+            Text(count == 1 ? "Request" : "Requests")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.primary)
+                .lineLimit(1)
         }
     }
 }

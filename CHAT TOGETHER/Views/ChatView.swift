@@ -25,6 +25,7 @@ struct ChatView: View {
     @State private var showOverlay = false
     @FocusState private var isInputFocused: Bool
     @State private var showCopiedToast = false
+    @State private var isAITyping = false
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
@@ -46,6 +47,19 @@ struct ChatView: View {
             .navigationBarBackButtonHidden(true)
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 6) {
+                    if isAITyping {
+                        HStack(spacing: 4) {
+                            Text("Tomi is typing")
+                                .font(.footnote)
+                                .foregroundColor(.primary)
+                            
+                            TypingDotsView()
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
                     
                     if showMentionList {
                         VStack(alignment: .leading, spacing: 0) {
@@ -53,20 +67,20 @@ struct ChatView: View {
                                 insertMention("Tomi")
                             } label: {
                                 HStack {
-                                    Circle()
-                                        .fill(Color.pink)
+                                    Image("logo1")
+                                        .resizable()
+                                        .scaledToFill()
                                         .frame(width: 30, height: 30)
-                                        .overlay(Text("T").foregroundColor(.white))
-                                    
+                                        .clipShape(Circle())
                                     Text("Tomi")
                                     Spacer()
                                 }
                                 .padding(8)
                             }
                         }
-                        .background(Color(.systemBackground))
-                        .cornerRadius(10)
-                        .shadow(radius: 3)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
                         .padding(.horizontal)
                     }
                     
@@ -85,6 +99,11 @@ struct ChatView: View {
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     dismiss()
+                }
+            }
+            .onReceive(viewModel.$isAITyping) { value in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isAITyping = value
                 }
             }
             .onTapGesture {
@@ -1250,5 +1269,46 @@ struct MessageFrameKey: PreferenceKey {
     
     static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
         value = nextValue()
+    }
+}
+
+struct TypingDotsView: View {
+    
+    @State private var animate = false
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Dot(delay: 0.0, animate: animate)
+            Dot(delay: 0.15, animate: animate)
+            Dot(delay: 0.3, animate: animate)
+        }
+        .onAppear {
+            animate = true
+        }
+    }
+}
+
+private struct Dot: View {
+    let delay: Double
+    let animate: Bool
+    
+    @State private var offset: CGFloat = 0
+    @State private var opacity: Double = 0.3
+    
+    var body: some View {
+        Circle()
+            .frame(width: 5, height: 5)
+            .offset(y: offset + 2.5)
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(
+                    Animation.easeInOut(duration: 0.5)
+                        .repeatForever()
+                        .delay(delay)
+                ) {
+                    offset = -5
+                    opacity = 1
+                }
+            }
     }
 }

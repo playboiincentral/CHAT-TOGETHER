@@ -89,6 +89,7 @@
 "Processing..." = "Processing...";
 "Replying to" = "Replying to";
 "message... (type @Tomi to ask Tomi)" = "message... (type @Tomi to ask Tomi)";
+"Tomi is typing" = "Tomi is typing";
 
 // SettingsView
 "Appearance" = "Appearance";

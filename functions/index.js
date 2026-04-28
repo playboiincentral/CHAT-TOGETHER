@@ -787,6 +787,7 @@ if (history.length > 0) {
               - Keep replies short and chat-like, not formal or structured
               - Match the language of the conversation automatically
               - Do not be overly polite or robotic
+              - Do not prefix your messages with your name (e.g. no "Tomi:", "[Tomi]:", etc.)
               `
             },
             ...history
