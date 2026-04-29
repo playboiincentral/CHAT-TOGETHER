@@ -48,19 +48,6 @@ struct ChatView: View {
             .navigationBarBackButtonHidden(true)
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 6) {
-                    if isAITyping {
-                        HStack(spacing: 4) {
-                            Text("Tomi is typing")
-                                .font(.footnote)
-                                .foregroundColor(.primary)
-                            
-                            TypingDotsView()
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                    }
                     
                     if showMentionList {
                         VStack(alignment: .leading, spacing: 0) {
@@ -73,22 +60,29 @@ struct ChatView: View {
                                         .scaledToFill()
                                         .frame(width: 30, height: 30)
                                         .clipShape(Circle())
-                                    Text("Tomi")
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Tomi")
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.primary)
+                                        Text("Ask a question")
+                                            .font(.caption)
+                                            .foregroundStyle(.primary.opacity(0.7))
+                                    }
                                     Spacer()
                                 }
-                                .padding(8)
+                                .padding(9)
+                                .padding(.leading, 20)
                             }
                         }
-                        .background(.ultraThinMaterial)
                         .cornerRadius(12)
-                        .shadow(radius: 5)
-                        .padding(.horizontal)
+                        .padding(.horizontal, 8)
                     }
                     
                     inputSection
                 }
-                .padding(.bottom, 4)
-                .background(Color(.systemBackground))
+                .padding(.bottom, 2)
+                .background(.ultraThinMaterial)
             }
             .onAppear {
                 viewModel.messages = []
@@ -374,7 +368,6 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    
                     ForEach(Array(messageItems.reversed())) { item in
                         messageRow(item)
                             .id(item.id)
@@ -447,8 +440,8 @@ struct ChatView: View {
                     .textFieldStyle(.plain)
                     .focused($isInputFocused)
                     .padding(10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(18)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(23)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                     .submitLabel(.send)
@@ -472,10 +465,9 @@ struct ChatView: View {
                 }
                 .disabled(isEmpty)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 8)
         }
         .padding(.vertical, 6)
-        .background(Color(.systemBackground))
     }
     
     private func replyingLabel(for message: Message) -> String {

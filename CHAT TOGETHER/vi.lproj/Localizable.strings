@@ -9,7 +9,7 @@
 "confirm_age" = "Tôi xác nhận rằng tôi %d tuổi!";
 "Loading user..." = "Đang tải người dùng...";
 "Done" = "Xong";
-"Match" = "Ghép Đôi";
+"Match" = "Tìm Bạn";
 "Chat" = "Tin Nhắn";
 "Reconnecting..." = "Đang kết nối lại...";
 
@@ -87,11 +87,14 @@
 "Send Friend Request" = "Gửi Lời Mời Kết Bạn";
 "You are no longer friends." = "Hai người không còn là bạn bè nữa.";
 "Processing..." = "Đang xử lý...";
-"Replying to" = "Trả lời";
+"Replying to" = "Đang trả lời";
 "message... (type @Tomi to ask Tomi)" = "tin nhắn... (gõ @Tomi để hỏi Tomi)";
 "Tomi is typing" = "Tomi đang gõ";
 "Friend limit reached" = "Đã đạt giới hạn bạn bè";
 "You or this user has reached the maximum of 200 friends." = "Bạn hoặc người dùng này đã đạt đến số lượng bạn bè tối đa là 200 người.";
+"Ask a question" = "Đặt câu hỏi";
+"Replying to yourself" = "Đang trả lời chính mình";
+"Replying" = "Đang trả lời";
 
 // SettingsView
 "Appearance" = "Giao Diện";

@@ -92,6 +92,9 @@
 "Tomi is typing" = "Tomi is typing";
 "Friend limit reached" = "Friend limit reached";
 "You or this user has reached the maximum of 200 friends." = "You or this user has reached the maximum of 200 friends.";
+"Ask a question" = "Ask a question";
+"Replying to yourself" = "Replying to yourself";
+"Replying" = "Replying";
 
 // SettingsView
 "Appearance" = "Appearance";

@@ -25,27 +25,25 @@ struct AppTabView: View {
         TabView(selection: $router.selectedTab) {
             HomeView()
                 .tabItem {
-                    Image(systemName: router.selectedTab == 0 ? "heart.fill" : "heart")
+                    Image(systemName: "heart")
                     Text("Match")
                 }
                 .tag(0)
             RequestsView()
                 .tabItem {
-                    Image(systemName: router.selectedTab == 1 ? "person.badge.plus.fill" : "person.badge.plus")
+                    Image(systemName: "person.badge.plus")
                     Text("Requests")
                 }
                 .badge(
-                    relationManager.receivedRequests.count > 99
-                    ? "99+"
-                    : "\(relationManager.receivedRequests.count)"
+                    relationManager.receivedRequests.isEmpty ? nil : (relationManager.receivedRequests.count > 99 ? "99+" : "\(relationManager.receivedRequests.count)")
                 )
                 .tag(1)
             MessagesView()
                 .tabItem {
-                    Image(systemName: router.selectedTab == 2 ? "message.fill" : "message")
+                    Image(systemName: "message")
                     Text("Chat")
                 }
-                .badge(unreadCount > 99 ? "99+" : "\(unreadCount)")
+                .badge(unreadCount == 0 ? nil : (unreadCount > 99 ? "99+" : "\(unreadCount)"))
                 .tag(2)
         }
         .tint(.primary)
