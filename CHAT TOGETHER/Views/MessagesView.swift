@@ -251,7 +251,6 @@ struct RequestsCard: View {
             Text(count == 1 ? "Request" : "Requests")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.primary)
-                .lineLimit(1)
         }
     }
 }

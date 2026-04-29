@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var showRemoveFriendAlert = false
     @State private var isProcessing = false
     @State private var isProcessing111 = false
+    @State private var showFriendLimitAlert = false
     let isCurrentUser: Bool
     let roomId: String?
     let userId: String?
@@ -193,6 +194,11 @@ struct ProfileView: View {
             } message: {
                 Text("You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?")
             }
+            .alert("Friend limit reached", isPresented: $showFriendLimitAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You or this user has reached the maximum of 200 friends.")
+            }
         }
     }
     
@@ -337,7 +343,15 @@ struct ProfileView: View {
     
     private func sendOrCancelRequest() {
         guard let partnerId = viewModel.user?.uid else { return }
-
+        
+        if !relationManager.isRequestSent(to: partnerId),
+               !relationManager.canAddFriend(),
+               !relationManager.isFriend(with: partnerId) {
+                
+                showFriendLimitAlert = true
+                return
+            }
+        
         // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
             

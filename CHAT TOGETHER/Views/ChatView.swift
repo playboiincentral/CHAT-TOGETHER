@@ -26,6 +26,7 @@ struct ChatView: View {
     @FocusState private var isInputFocused: Bool
     @State private var showCopiedToast = false
     @State private var isAITyping = false
+    @State private var showFriendLimitAlert = false
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         _viewModel = StateObject(wrappedValue: ChatViewModel(room: room, currentUserManager: currentUserManager))
@@ -117,6 +118,11 @@ struct ChatView: View {
                         isProcessing = false
                     }
                 }
+            }
+            .alert("Friend limit reached", isPresented: $showFriendLimitAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You or this user has reached the maximum of 200 friends.")
             }
             .alert("The other person has left the room.", isPresented: $viewModel.showPartnerLeftAlert) {
                 Button("OK") {
@@ -834,6 +840,14 @@ struct ChatView: View {
     
     private func sendOrCancelRequest() {
         guard let partnerId = viewModel.partner?.uid else { return }
+        
+        if !relationManager.isRequestSent(to: partnerId),
+               !relationManager.canAddFriend(),
+               !relationManager.isFriend(with: partnerId) {
+                
+                showFriendLimitAlert = true
+                return
+            }
         
         // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {

@@ -90,6 +90,8 @@
 "Replying to" = "Replying to";
 "message... (type @Tomi to ask Tomi)" = "message... (type @Tomi to ask Tomi)";
 "Tomi is typing" = "Tomi is typing";
+"Friend limit reached" = "Friend limit reached";
+"You or this user has reached the maximum of 200 friends." = "You or this user has reached the maximum of 200 friends.";
 
 // SettingsView
 "Appearance" = "Appearance";

@@ -22,6 +22,12 @@ class RelationManager: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
+    let maxFriends = 200
+
+    func canAddFriend() -> Bool {
+        friends.count < maxFriends
+    }
+    
     // MARK: - START LISTEN
     func startListening() {
         guard let uid = currentUserId else { return }

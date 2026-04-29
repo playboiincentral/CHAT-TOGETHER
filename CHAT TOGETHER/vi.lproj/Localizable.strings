@@ -90,6 +90,8 @@
 "Replying to" = "Trả lời";
 "message... (type @Tomi to ask Tomi)" = "tin nhắn... (gõ @Tomi để hỏi Tomi)";
 "Tomi is typing" = "Tomi đang gõ";
+"Friend limit reached" = "Đã đạt giới hạn bạn bè";
+"You or this user has reached the maximum of 200 friends." = "Bạn hoặc người dùng này đã đạt đến số lượng bạn bè tối đa là 200 người.";
 
 // SettingsView
 "Appearance" = "Giao Diện";
