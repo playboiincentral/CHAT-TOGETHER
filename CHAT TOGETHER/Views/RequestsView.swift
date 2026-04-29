@@ -18,7 +18,7 @@ struct RequestsView: View {
     
     @EnvironmentObject var relationManager: RelationManager
     @State private var selectedTab: RequestTab = .received
-        
+    
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
@@ -44,6 +44,16 @@ struct RequestsView: View {
                 .onChange(of: selectedTab) { _ in
                     let generator = UIImpactFeedbackGenerator(style: .light)
                     generator.impactOccurred()
+                }
+                
+                if selectedTab == .received && relationManager.receivedRequests.isEmpty {
+                    Text("No requests")
+                        .foregroundColor(.gray)
+                        .padding(.top, 40)
+                } else if selectedTab == .sent && relationManager.sentRequests.isEmpty {
+                    Text("No sent requests")
+                        .foregroundColor(.gray)
+                        .padding(.top, 40)
                 }
                 
                 ScrollView {
@@ -72,50 +82,38 @@ struct RequestsView: View {
     }
     @ViewBuilder
     private var receivedView: some View {
-        if !relationManager.receivedRequests.isEmpty {
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(Array(relationManager.receivedRequests.keys), id: \.self) { userId in
-                    
-                    if let user = relationManager.users[userId] {
-                        ReceivedCard(user: user) {
-                            accept(userId: userId)
-                        } rejectAction: {
-                            reject(userId: userId)
-                        }
-                    } else {
-                        placeholderCard
+        LazyVGrid(columns: columns, spacing: 20) {
+            ForEach(Array(relationManager.receivedRequests.keys), id: \.self) { userId in
+                
+                if let user = relationManager.users[userId] {
+                    ReceivedCard(user: user) {
+                        accept(userId: userId)
+                    } rejectAction: {
+                        reject(userId: userId)
                     }
+                } else {
+                    placeholderCard
                 }
             }
-            .padding(.horizontal)
-        } else {
-            Text("No requests")
-                .foregroundColor(.gray)
-                .padding(.top, 40)
         }
+        .padding(.horizontal)
     }
     
     @ViewBuilder
     private var sentView: some View {
-        if !relationManager.sentRequests.isEmpty {
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(Array(relationManager.sentRequests), id: \.self) { userId in
-                    
-                    if let user = relationManager.users[userId] {
-                        SentCard(user: user) {
-                            cancelRequest(userId: userId)
-                        }
-                    } else {
-                        placeholderCard
+        LazyVGrid(columns: columns, spacing: 20) {
+            ForEach(Array(relationManager.sentRequests), id: \.self) { userId in
+                
+                if let user = relationManager.users[userId] {
+                    SentCard(user: user) {
+                        cancelRequest(userId: userId)
                     }
+                } else {
+                    placeholderCard
                 }
             }
-            .padding(.horizontal)
-        } else {
-            Text("No sent requests")
-                .foregroundColor(.gray)
-                .padding(.top, 40)
         }
+        .padding(.horizontal)
     }
     
     private var placeholderCard: some View {
