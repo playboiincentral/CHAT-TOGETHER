@@ -6,9 +6,20 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct AppTabView: View {
     @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var friendsVM: FriendsViewModel
+    
+    var unreadCount: Int {
+        guard let uid = Auth.auth().currentUser?.uid else { return 0 }
+        
+        return friendsVM.roomsWithMessage.filter {
+            friendsVM.isUnread(room: $0, currentUserId: uid)
+        }.count
+    }
+    
     var body: some View {
         TabView(selection: $router.selectedTab) {
             HomeView()
@@ -28,6 +39,7 @@ struct AppTabView: View {
                     Image(systemName: router.selectedTab == 2 ? "message.fill" : "message")
                     Text("Chat")
                 }
+                .badge(unreadCount)
                 .tag(2)
         }
         .tint(.primary)

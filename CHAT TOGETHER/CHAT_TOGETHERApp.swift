@@ -87,6 +87,7 @@ struct CHAT_TOGETHERApp: App {
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var relationManager = RelationManager()
     @StateObject private var currentUserManager = CurrentUserManager()
+    @StateObject private var friendsVM = FriendsViewModel()
     @StateObject private var warningManager = WarningManager()
     @StateObject private var router = AppRouter()
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .dark
@@ -97,6 +98,7 @@ struct CHAT_TOGETHERApp: App {
                 .environmentObject(authVM)
                 .environmentObject(relationManager)
                 .environmentObject(currentUserManager)
+                .environmentObject(friendsVM)
                 .environmentObject(warningManager)
                 .environmentObject(router)
                 .preferredColorScheme(

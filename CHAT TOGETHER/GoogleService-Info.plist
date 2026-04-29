@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>88231789456-52qln7hjg3ha7esho4ge7lr1q48m81vt.apps.googleusercontent.com</string>
+	<string>88231789456-5nu0moo43nmk02iqrlkq6qbpeumsgenb.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.88231789456-52qln7hjg3ha7esho4ge7lr1q48m81vt</string>
+	<string>com.googleusercontent.apps.88231789456-5nu0moo43nmk02iqrlkq6qbpeumsgenb</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAfrt47bXkSJkdhwHTEXECnnEdtREnmO-o</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.playboiincentral.CHAT-TOGETHER</string>
+	<string>com.chattogether.app</string>
 	<key>PROJECT_ID</key>
 	<string>chat-together-e2842</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:88231789456:ios:33dea0d23c8c7abd1f6915</string>
+	<string>1:88231789456:ios:1cc80c79868b2a291f6915</string>
 </dict>
 </plist>

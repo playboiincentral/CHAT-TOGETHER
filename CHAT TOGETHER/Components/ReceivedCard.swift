@@ -6,9 +6,12 @@ struct ReceivedCard: View {
     let acceptAction: () -> Void
     let rejectAction: () -> Void
     
+    @State private var isAccepting = false
+    @State private var isRejecting = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack(alignment: .bottomLeading) {
                 if let avatar = user.avatar, let url = URL(string: avatar) {
                     KFImage(url)
                         .placeholder {
@@ -23,7 +26,6 @@ struct ReceivedCard: View {
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .frame(height: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .contentShape(RoundedRectangle(cornerRadius: 20))
                 } else {
                     ZStack {
                         RoundedRectangle(cornerRadius: 20).fill(Color.gray.opacity(0.2))
@@ -33,42 +35,64 @@ struct ReceivedCard: View {
                     .aspectRatio(3/4, contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity)
                     .frame(height: 220)
-                    .contentShape(RoundedRectangle(cornerRadius: 20))
                 }
                 
-                HStack(spacing: 10) {
-                    Button(action: rejectAction) {
+                LinearGradient(
+                    colors: [Color.black.opacity(0.0), Color.black.opacity(0.7)],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+                Text(user.fullname)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4)
+                    .lineLimit(1)
+                    .padding(12)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            
+            HStack(spacing: 10) {
+                Button {
+                    isRejecting = true
+                    rejectAction()
+                } label: {
+                    if isRejecting {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .fontWeight(.bold)
                             .foregroundColor(.red)
-                            .padding(10)
-                            .background(.black.opacity(0.4))
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                    }
-                    
-                    Button(action: acceptAction) {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.green)
-                            .padding(10)
-                            .background(.black.opacity(0.4))
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
                     }
                 }
-                .padding(10)
-                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+                .disabled(isRejecting)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+                
+                Button {
+                    isAccepting = true
+                    acceptAction()
+                } label: {
+                    if isAccepting {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                    }
+                }
+                .disabled(isAccepting)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
             }
-            
-            // Name Section
-            VStack(alignment: .leading) {
-                Text(user.fullname)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, 4)
+            .padding(10)
         }
         .padding(8)
         .background(Color(.secondarySystemBackground))

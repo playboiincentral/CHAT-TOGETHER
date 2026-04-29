@@ -6,7 +6,7 @@ import FirebaseFunctions
 
 struct MessagesView: View {
     @EnvironmentObject private var router: AppRouter
-    @StateObject private var friendsVM = FriendsViewModel()
+    @EnvironmentObject private var friendsVM: FriendsViewModel
     @State private var isLoading = false
     @State private var selectedRoom: ChatRoom?
     @State private var showChat = false

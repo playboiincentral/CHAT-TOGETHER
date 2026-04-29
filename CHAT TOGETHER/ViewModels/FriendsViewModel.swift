@@ -66,6 +66,23 @@ class FriendsViewModel: ObservableObject {
             }
     }
     
+    func isUnread(room: ChatRoom, currentUserId: String) -> Bool {
+        
+        guard let lastMessageAt = room.lastMessageAt else {
+            return false
+        }
+        
+        guard room.lastMessageSenderId != currentUserId else {
+            return false
+        }
+        
+        guard let lastRead = room.lastReadAt?[currentUserId] else {
+            return true
+        }
+        
+        return lastRead.dateValue() < lastMessageAt.dateValue()
+    }
+    
     private func fetchUsers(with ids: [String]) {
         
         let group = DispatchGroup()
