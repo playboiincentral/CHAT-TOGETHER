@@ -134,6 +134,8 @@
 "report.violence" = "Violence";
 "report.scam" = "Scam";
 "report.other" = "Other";
+"Report & Block" = "Report & Block";
+"Just Report" = "Just Report";
 
 // WarningOverlay
 "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior.";

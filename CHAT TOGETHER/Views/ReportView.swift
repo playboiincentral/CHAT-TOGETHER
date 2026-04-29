@@ -5,6 +5,8 @@ struct ReportView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = ReportViewModel()
     @State private var showToast = false
+    @State private var showConfirmDialog = false
+    @State private var isProcessing = false
     
     let roomId: String
     let reporterId: String
@@ -38,33 +40,6 @@ struct ReportView: View {
                     }
                     
                     Spacer()
-                    
-                    // MARK: - Submit
-                    Button {
-                        guard !viewModel.isSubmitting else { return }
-                        
-                        viewModel.submitReport(
-                            roomId: roomId,
-                            reporterId: reporterId,
-                            reportedUserId: reportedUserId
-                        )
-                    } label: {
-                        HStack {
-                            if viewModel.isSubmitting {
-                                ProgressView()
-                            } else {
-                                Text("Submit")
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(viewModel.isValid ? Color.blue : Color.gray)
-                        .opacity(viewModel.isSubmitting ? 0.7 : 1)
-                        .foregroundColor(.white)
-                        .cornerRadius(14)
-                    }
-                    .disabled(!viewModel.isValid || viewModel.isSubmitting)
                 }
                 .padding()
             }
@@ -79,6 +54,35 @@ struct ReportView: View {
                         Image(systemName: "chevron.left")
                             .fontWeight(.semibold)
                             .foregroundStyle(.primary)
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showConfirmDialog = true
+                    } label: {
+                        ZStack {
+                            Text("Submit")
+                                .foregroundStyle(.blue)
+                                .opacity(viewModel.isSubmitting || isProcessing ? 0 : 1)
+                            
+                            ProgressView()
+                                .opacity(viewModel.isSubmitting || isProcessing ? 1 : 0)
+                        }
+                        .frame(width: 50)
+                    }
+                    .disabled(!viewModel.isValid || viewModel.isSubmitting || isProcessing)
+                }
+            }
+            .disabled(isProcessing)
+            .overlay {
+                if isProcessing {
+                    ZStack {
+                        Color.black.opacity(0.3).ignoresSafeArea()
+
+                        ProgressView("Processing...")
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
                     }
                 }
             }
@@ -107,6 +111,18 @@ struct ReportView: View {
                         dismiss()
                     }
                 }
+            }
+            .confirmationDialog("", isPresented: $showConfirmDialog) {
+                
+                Button("Report & Block") {
+                    submitReportAndBlock()
+                }
+                
+                Button("Just Report") {
+                    submitReportOnly()
+                }
+                
+                Button("Cancel", role: .cancel) { }
             }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
@@ -153,6 +169,41 @@ struct ReportView: View {
         case .violence: return "report.violence"
         case .scam: return "report.scam"
         case .other: return "report.other"
+        }
+    }
+    
+    private func submitReportOnly() {
+        guard !viewModel.isSubmitting else { return }
+        
+        viewModel.submitReport(
+            roomId: roomId,
+            reporterId: reporterId,
+            reportedUserId: reportedUserId
+        )
+    }
+    
+    private func submitReportAndBlock() {
+        guard !viewModel.isSubmitting, !isProcessing else { return }
+        
+        isProcessing = true
+        
+        viewModel.submitReport(
+            roomId: roomId,
+            reporterId: reporterId,
+            reportedUserId: reportedUserId
+        )
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            
+            UserRelationService.shared.blockUser(targetUserId: reportedUserId) { success in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    
+                    if success {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

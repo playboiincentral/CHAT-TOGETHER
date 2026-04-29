@@ -134,6 +134,8 @@
 "report.violence" = "Bạo Lực";
 "report.scam" = "Lừa Đảo";
 "report.other" = "Khác";
+"Report & Block" = "Báo Cáo & Chặn";
+"Just Report" = "Chỉ Báo Cáo";
 
 // WarningOverlay
 "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "Bạn đã vi phạm Điều khoản Dịch vụ của chúng tôi. Chúng tôi đã xử lý nội dung này. Vi phạm nhiều lần có thể dẫn đến đình chỉ tài khoản hoặc cấm vĩnh viễn. Vui lòng không lặp lại hành vi này.";

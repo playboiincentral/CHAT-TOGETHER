@@ -55,9 +55,9 @@ struct EditProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                 
-                VStack(alignment: .leading, spacing: 26) {
+                VStack(alignment: .leading, spacing: 28) {
                     // MARK: Name
-                    VStack(alignment: .leading, spacing: 15) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Display Name")
                             .font(.headline)
                         
@@ -175,7 +175,7 @@ struct EditProfileView: View {
     
     @ViewBuilder
     private var genderSelector: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Gender")
                 .font(.headline)
             VStack(alignment: .leading, spacing: 10) {
@@ -206,7 +206,7 @@ struct EditProfileView: View {
     
     @ViewBuilder
     private var bioEditor: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Bio")
                 .font(.headline)
             ZStack(alignment: .bottomTrailing) {
