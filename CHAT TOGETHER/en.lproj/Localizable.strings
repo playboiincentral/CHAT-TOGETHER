@@ -55,7 +55,6 @@
 "Edit Profile" = "Edit Profile";
 "Bio" = "Bio";
 "Member since" = "Member since";
-"Friends" = "Friends";
 "Profile" = "Profile";
 "Unfriend" = "Unfriend";
 "Block" = "Block";
@@ -126,16 +125,15 @@
 "Report Type *" = "Report Type *";
 "Description" = "Description";
 "Submit" = "Submit";
-"Report" = "Report";
 "Report submitted." = "Report submitted.";
-"Harassment" = "Harassment";
-"Sexual Content" = "Sexual Content";
-"Hate Speech" = "Hate Speech";
-"Spam" = "Spam";
-"Discrimination" = "Discrimination";
-"Violence" = "Violence";
-"Scam" = "Scam";
-"Other" = "Other";
+"report.harassment" = "Harassment";
+"report.sexualContent" = "Sexual Content";
+"report.hateSpeech" = "Hate Speech";
+"report.spam" = "Spam";
+"report.discrimination" = "Discrimination";
+"report.violence" = "Violence";
+"report.scam" = "Scam";
+"report.other" = "Other";
 
 // WarningOverlay
 "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior.";

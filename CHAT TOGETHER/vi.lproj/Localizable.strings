@@ -55,11 +55,10 @@
 "Edit Profile" = "Sửa Hồ Sơ";
 "About me" = "Về tôi";
 "Member since" = "Tham gia từ";
-"Friends" = "Bạn bè";
 "Profile" = "Trang cá nhân";
 "Unfriend" = "Huỷ Kết Bạn";
 "Block" = "Chặn";
-"Report" = "Báo cáo";
+"Report" = "Báo Cáo";
 "Accept" = "Chấp Nhận";
 "Decline" = "Từ Chối";
 "Cancel Request" = "Huỷ Yêu Cầu";
@@ -126,16 +125,15 @@
 "Report Type *" = "Loại Báo Cáo *";
 "Description" = "Mô Tả";
 "Submit" = "Gửi";
-"Report" = "Báo Cáo";
-"Report submitted" = "Đã gửi báo cáo.";
-"Harassment" = "Quấy Rối";
-"Sexual Content" = "Nội Dung Khiêu Dâm";
-"Hate Speech" = "Lời Lẽ Thù Hận";
-"Spam" = "Spam";
-"Discrimination" = "Phân Biệt";
-"Violence" = "Bạo Lực";
-"Scam" = "Lừa Đảo";
-"Other" = "Khác";
+"Report submitted." = "Đã gửi báo cáo.";
+"report.harassment" = "Quấy Rối";
+"report.sexualContent" = "Nội Dung Tình Dục";
+"report.hateSpeech" = "Ngôn Từ Thù Ghét";
+"report.spam" = "Spam";
+"report.discrimination" = "Phân Biệt Đối Xử";
+"report.violence" = "Bạo Lực";
+"report.scam" = "Lừa Đảo";
+"report.other" = "Khác";
 
 // WarningOverlay
 "You have violated our Terms of Service. We have taken action on this content. Repeated violations may result in account suspension or permanent ban. Please do not repeat this behavior." = "Bạn đã vi phạm Điều khoản Dịch vụ của chúng tôi. Chúng tôi đã xử lý nội dung này. Vi phạm nhiều lần có thể dẫn đến đình chỉ tài khoản hoặc cấm vĩnh viễn. Vui lòng không lặp lại hành vi này.";

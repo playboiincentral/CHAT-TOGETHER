@@ -227,7 +227,7 @@ struct ChatView: View {
                 
                 Button("Cancel", role: .cancel) { }
             }
-            .navigationDestination(isPresented: $showReportView) {
+            .fullScreenCover(isPresented: $showReportView) {
                 if let userId = viewModel.userId,
                    let partnerId = viewModel.partner?.uid {
                     

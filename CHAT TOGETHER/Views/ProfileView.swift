@@ -160,7 +160,7 @@ struct ProfileView: View {
                     EditProfileView()
                 }
             }
-            .navigationDestination(isPresented: $showReportView) {
+            .fullScreenCover(isPresented: $showReportView) {
                 if let roomId = roomId,
                    let reporterId = Auth.auth().currentUser?.uid,
                    let partnerId = viewModel.user?.uid {

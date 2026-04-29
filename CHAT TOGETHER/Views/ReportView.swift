@@ -11,6 +11,7 @@ struct ReportView: View {
     let reportedUserId: String
     
     var body: some View {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     
@@ -69,6 +70,18 @@ struct ReportView: View {
             }
             .navigationTitle("Report")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
             .overlay(alignment: .top) {
                 if showToast {
                     Text("Report submitted.")
@@ -103,6 +116,7 @@ struct ReportView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
+        }
     }
     
     // MARK: - Row
@@ -129,16 +143,16 @@ struct ReportView: View {
         }
     }
     
-    private func title(for reason: ReportReason) -> String {
+    private func title(for reason: ReportReason) -> LocalizedStringKey {
         switch reason {
-        case .harassment: return "Harassment"
-        case .sexualContent: return "Sexual Content"
-        case .hateSpeech: return "Hate Speech"
-        case .spam: return "Spam"
-        case .discrimination: return "Discrimination"
-        case .violence: return "Violence"
-        case .scam: return "Scam"
-        case .other: return "Other"
+        case .harassment: return "report.harassment"
+        case .sexualContent: return "report.sexualContent"
+        case .hateSpeech: return "report.hateSpeech"
+        case .spam: return "report.spam"
+        case .discrimination: return "report.discrimination"
+        case .violence: return "report.violence"
+        case .scam: return "report.scam"
+        case .other: return "report.other"
         }
     }
 }
