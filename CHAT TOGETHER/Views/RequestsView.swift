@@ -7,7 +7,7 @@ enum RequestTab: CaseIterable {
     func title(receivedCount: Int) -> String {
         switch self {
         case .received:
-            return "\(receivedCount) " + (receivedCount == 1 ? "Request" : "Requests")
+            return (receivedCount > 99 ? "99+ " : "\(receivedCount) ") + (receivedCount == 1 ? "Request" : "Requests")
         case .sent:
             return "Sent"
         }

@@ -10,6 +10,7 @@ import FirebaseAuth
 
 struct AppTabView: View {
     @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var relationManager: RelationManager
     @EnvironmentObject private var friendsVM: FriendsViewModel
     
     var unreadCount: Int {
@@ -33,13 +34,18 @@ struct AppTabView: View {
                     Image(systemName: router.selectedTab == 1 ? "person.badge.plus.fill" : "person.badge.plus")
                     Text("Requests")
                 }
+                .badge(
+                    relationManager.receivedRequests.count > 99
+                    ? "99+"
+                    : "\(relationManager.receivedRequests.count)"
+                )
                 .tag(1)
             MessagesView()
                 .tabItem {
                     Image(systemName: router.selectedTab == 2 ? "message.fill" : "message")
                     Text("Chat")
                 }
-                .badge(unreadCount)
+                .badge(unreadCount > 99 ? "99+" : "\(unreadCount)")
                 .tag(2)
         }
         .tint(.primary)

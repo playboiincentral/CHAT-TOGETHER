@@ -237,7 +237,7 @@ struct RequestsCard: View {
                 
                 // 🔴 Badge
                 if count > 0 {
-                    Text("\(count)")
+                    Text(count > 99 ? "99+" : "\(count)")
                         .font(.caption2.bold())
                         .foregroundColor(.white)
                         .padding(6)
