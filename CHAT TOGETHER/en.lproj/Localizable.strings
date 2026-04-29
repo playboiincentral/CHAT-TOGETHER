@@ -10,6 +10,7 @@
 "Loading user..." = "Loading user...";
 "Done" = "Done";
 "Match" = "Match";
+"Requests" = "Requests";
 "Chat" = "Chat";
 "Reconnecting..." = "Reconnecting...";
 
@@ -94,6 +95,7 @@
 "Ask a question" = "Ask a question";
 "Replying to yourself" = "Replying to yourself";
 "Replying" = "Replying";
+"Block User?" = "Block User?";
 
 // SettingsView
 "Appearance" = "Appearance";
@@ -101,9 +103,9 @@
 "Log Out" = "Log Out";
 "Delete Account" = "Delete Account";
 "Settings" = "Settings";
-"Light" = "Light";
-"Dark" = "Dark";
 "Legal" = "Legal";
+"appearance_light" = "Light";
+"appearance_dark" = "Dark";
 
 // DeleteView
 "Delete your account?" = "Delete your account?";
@@ -117,9 +119,9 @@
 // RequestsView
 "No requests" = "No requests";
 "No sent requests" = "No sent requests";
-"Request" = "Request";
-"Requests" = "Requests";
-"Sent" = "Sent";
+"request_count" = "%d Requests";
+"request_99_plus" = "99+ Requests";
+"request_sent" = "Sent";
 
 // ReportView
 "Report Type *" = "Report Type *";

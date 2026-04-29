@@ -7,9 +7,15 @@ enum RequestTab: CaseIterable {
     func title(receivedCount: Int) -> String {
         switch self {
         case .received:
-            return (receivedCount > 99 ? "99+ " : "\(receivedCount) ") + (receivedCount == 1 ? "Request" : "Requests")
+            if receivedCount > 99 {
+                return NSLocalizedString("request_99_plus", comment: "")
+            } else {
+                let format = NSLocalizedString("request_count", comment: "")
+                return String(format: format, receivedCount)
+            }
+            
         case .sent:
-            return "Sent"
+            return NSLocalizedString("request_sent", comment: "")
         }
     }
 }

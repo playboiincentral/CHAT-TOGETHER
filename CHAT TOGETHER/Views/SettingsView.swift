@@ -8,8 +8,17 @@
 import SwiftUI
 
 enum AppearanceMode: String, CaseIterable {
-    case light = "Light"
-    case dark = "Dark"
+    case light
+    case dark
+    
+    var title: LocalizedStringKey {
+        switch self {
+        case .light:
+            return "appearance_light"
+        case .dark:
+            return "appearance_dark"
+        }
+    }
 }
 
 struct SettingsView: View {
@@ -112,7 +121,7 @@ struct SettingsView: View {
             }
         } label: {
             HStack {
-                Text(mode.rawValue)
+                Text(mode.title)
                 
                 Spacer()
                 

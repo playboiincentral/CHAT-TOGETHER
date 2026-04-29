@@ -10,6 +10,7 @@
 "Loading user..." = "Đang tải người dùng...";
 "Done" = "Xong";
 "Match" = "Tìm Bạn";
+"Requests" = "Lời Mời";
 "Chat" = "Tin Nhắn";
 "Reconnecting..." = "Đang kết nối lại...";
 
@@ -94,6 +95,7 @@
 "Ask a question" = "Đặt câu hỏi";
 "Replying to yourself" = "Đang trả lời chính mình";
 "Replying" = "Đang trả lời";
+"Block User?" = "Chặn Người Dùng?";
 
 // SettingsView
 "Appearance" = "Giao Diện";
@@ -101,9 +103,9 @@
 "Log Out" = "Đăng Xuất";
 "Delete Account" = "Xoá Tài Khoản";
 "Settings" = "Cài Đặt";
-"Light" = "Sáng";
-"Dark" = "Tối";
 "Legal" = "Pháp Lý";
+"appearance_light" = "Sáng";
+"appearance_dark" = "Tối";
 
 // DeleteView
 "Delete your account?" = "Xóa tài khoản của bạn?";
@@ -117,9 +119,9 @@
 // RequestsView
 "No requests" = "Không có yêu cầu nào";
 "No sent requests" = "Không có yêu cầu nào được gửi";
-"Request" = "Yêu Cầu";
-"Requests" = "Yêu Cầu";
-"Sent" = "Đã Gửi";
+"request_count" = "%d Lời mời";
+"request_99_plus" = "99+ Lời mời";
+"request_sent" = "Đã gửi";
 
 // ReportView
 "Report Type *" = "Loại Báo Cáo *";
