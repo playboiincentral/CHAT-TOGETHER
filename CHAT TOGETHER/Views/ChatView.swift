@@ -88,6 +88,7 @@ struct ChatView: View {
                 viewModel.messages = []
                 viewModel.fetchPartner()
                 viewModel.handleOnAppear()
+                viewModel.listenUserDeletion()
             }
             .onChange(of: viewModel.shouldDismiss) { value in
                 guard value else { return }
@@ -173,7 +174,6 @@ struct ChatView: View {
                 Text("You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?")
             }
             .disabled(isProcessing)
-            
             .overlay {
                 if isProcessing {
                     ZStack {

@@ -16,4 +16,5 @@ enum AppEvent {
 extension Notification.Name {
     static let userRemoved = Notification.Name("userRemoved")
     static let userBlocked = Notification.Name("userBlocked")
+    static let userDeleted = Notification.Name("userDeleted")
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 import Kingfisher
 
 struct ProfileView: View {
@@ -41,7 +42,7 @@ struct ProfileView: View {
                     // Avatar
                     if let avatar = displayUser?.avatar,
                        let url = URL(string: avatar) {
-
+                        
                         KFImage(url)
                             .placeholder {
                                 ProgressView()
@@ -139,6 +140,7 @@ struct ProfileView: View {
                     if let userId = userId {
                         viewModel.fetchUser(uid: userId)
                     }
+                    listenUserDeletion()
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .userBlocked)) { notification in
@@ -227,18 +229,18 @@ struct ProfileView: View {
                     .cornerRadius(12)
             }
             if roomId != nil {
-            Button {
-                showReportView = true
-            } label: {
-                Text("Report")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .fontWeight(.semibold)
-                    .foregroundColor(.red)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(12)
+                Button {
+                    showReportView = true
+                } label: {
+                    Text("Report")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .fontWeight(.semibold)
+                        .foregroundColor(.red)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(12)
+                }
             }
-        }
         }
         .padding(.top, 10)
     }
@@ -250,22 +252,22 @@ struct ProfileView: View {
                 if relationManager.isFriend(with: partnerId) {
                     
                     Button {
-                            showRemoveFriendAlert = true
-                        } label: {
-                            if isProcessing {
-                                ProgressView()
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                            } else {
-                                Text("Unfriend")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.primary)
-                                    .background(Color(.systemGray5))
-                                    .cornerRadius(12)
-                            }
+                        showRemoveFriendAlert = true
+                    } label: {
+                        if isProcessing {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        } else {
+                            Text("Unfriend")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .background(Color(.systemGray5))
+                                .cornerRadius(12)
                         }
+                    }
                     
                 } else if relationManager.didReceiveRequest(from: partnerId) {
                     
@@ -355,12 +357,12 @@ struct ProfileView: View {
         guard let partnerId = viewModel.user?.uid else { return }
         
         if !relationManager.isRequestSent(to: partnerId),
-               !relationManager.canAddFriend(),
-               !relationManager.isFriend(with: partnerId) {
-                
-                showFriendLimitAlert = true
-                return
-            }
+           !relationManager.canAddFriend(),
+           !relationManager.isFriend(with: partnerId) {
+            
+            showFriendLimitAlert = true
+            return
+        }
         
         // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
@@ -396,14 +398,14 @@ struct ProfileView: View {
             }
         }
     }
-
+    
     
     private func acceptRequest() {
         guard let partnerId = viewModel.user?.uid,
               let requestId = relationManager.requestId(from: partnerId) else { return }
         
         relationManager.markAsFriendLocally(with: partnerId)
-
+        
         UserRelationService.shared.acceptFriendRequest(
             requestId: requestId,
             partnerId: partnerId
@@ -425,5 +427,23 @@ struct ProfileView: View {
         UserRelationService.shared.declineFriendRequest(
             requestId: requestId
         ) { _ in }
+    }
+    
+    private func listenUserDeletion() {
+        guard let uid = viewModel.user?.uid else { return }
+        Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Listen error:", error.localizedDescription)
+                    return
+                }
+                
+                if snapshot == nil || !(snapshot?.exists ?? false) {
+                    dismiss()
+                }
+            }
     }
 }

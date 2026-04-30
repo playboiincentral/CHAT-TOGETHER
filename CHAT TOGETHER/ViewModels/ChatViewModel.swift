@@ -30,22 +30,22 @@ class ChatViewModel: ObservableObject {
     private let currentUserManager: CurrentUserManager
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
-            self.room = room
-            self.currentUserManager = currentUserManager
-            
-            self.isRoomActive = true
-            self.hasReceivedFirstRoomSnapshot = false
-            self.messages = []
-            
-            listenMessages()
-            listenRoomStatus()
-            
-            if room.type == .random {
-                startHeartbeat()
-            }
-            
-            listenFriendship()
+        self.room = room
+        self.currentUserManager = currentUserManager
+        
+        self.isRoomActive = true
+        self.hasReceivedFirstRoomSnapshot = false
+        self.messages = []
+        
+        listenMessages()
+        listenRoomStatus()
+        
+        if room.type == .random {
+            startHeartbeat()
         }
+        
+        listenFriendship()
+    }
     
     deinit {
         if room.type == .random {
@@ -90,7 +90,6 @@ class ChatViewModel: ObservableObject {
             print("No partner found")
             return
         }
-        
         
         db.collection("users")
             .document(partnerId)
@@ -213,9 +212,9 @@ class ChatViewModel: ObservableObject {
                         self.room = updatedRoom
                         
                         if !self.isRoomReady {
-                                                self.isRoomReady = true
-                                                self.flushPendingMessages()
-                                            }
+                            self.isRoomReady = true
+                            self.flushPendingMessages()
+                        }
                     }
                 }
                 
@@ -257,29 +256,29 @@ class ChatViewModel: ObservableObject {
         guard !trimmed.isEmpty else { return }
         
         if trimmed.range(of: "@tomi", options: .caseInsensitive) != nil {
-                DispatchQueue.main.async {
-                    self.isAITyping = true
-                }
+            DispatchQueue.main.async {
+                self.isAITyping = true
             }
+        }
         
         messageText = ""
-
+        
         guard isRoomActive else {
             print("Room is not active")
             return
         }
-
+        
         if !isRoomReady {
             pendingMessages.append((trimmed, replyTo))
             return
         }
-
+        
         actuallySend(trimmed, replyTo: replyTo)
     }
     
     private func actuallySend(_ text: String, replyTo: Message?) {
         guard let currentUserId = userId else { return }
-
+        
         let roomRef = db.collection("chatRooms").document(room.roomId)
         let messageRef = roomRef.collection("messages").document()
         let currentUserName = currentUserManager.currentUser?.fullname ?? "User"
@@ -287,7 +286,7 @@ class ChatViewModel: ObservableObject {
         let replyPreview = replyTo?.text
         
         let batch = db.batch()
-
+        
         // 🔹 message
         batch.setData([
             "senderId": currentUserId,
@@ -301,20 +300,20 @@ class ChatViewModel: ObservableObject {
             "replyToMessageId": replyId as Any,
             "replyPreview": replyPreview as Any
         ], forDocument: messageRef)
-
+        
         // 🔹 room update
         var updateData: [String: Any] = [
             "lastActivityAt": FieldValue.serverTimestamp()
         ]
-
+        
         if room.type == .friend {
             updateData["lastMessage"] = text
             updateData["lastMessageSenderId"] = currentUserId
             updateData["lastMessageAt"] = FieldValue.serverTimestamp()
         }
-
+        
         batch.updateData(updateData, forDocument: roomRef)
-
+        
         batch.commit { error in
             if let error = error {
                 print("Send message error:", error.localizedDescription)
@@ -395,8 +394,8 @@ class ChatViewModel: ObservableObject {
         }
         
         if room.type == .random {
-               sendHeartbeat()
-           }
+            sendHeartbeat()
+        }
     }
     
     func listenFriendship() {
@@ -450,5 +449,29 @@ class ChatViewModel: ObservableObject {
     func cleanupAfterUnfriendInRandom() {
         friendshipListener?.remove()
         friendshipListener = nil
+    }
+    
+    func listenUserDeletion() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        
+        guard let partnerId = room.users.first(where: { $0 != currentUid }) else {
+            print("No partner found")
+            return
+        }
+        
+        db.collection("users")
+            .document(partnerId)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Listen error:", error.localizedDescription)
+                    return
+                }
+                
+                if snapshot == nil || !(snapshot?.exists ?? false) {
+                    self.shouldDismiss = true
+                    self.cleanupAfterBlock()
+                }
+            }
     }
 }

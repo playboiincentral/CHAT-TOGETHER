@@ -10,6 +10,7 @@ import SwiftUI
 struct DeleteAccountView: View {
     
     @EnvironmentObject private var vm: AuthViewModel
+    
     @Environment(\.dismiss) private var dismiss
     
     @State private var isDeleting = false
@@ -51,6 +52,18 @@ struct DeleteAccountView: View {
             .disabled(isDeleting)
             .padding(.bottom)
         }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
         .alert("Delete Account?", isPresented: $showConfirmDelete) {
             
             Button("Cancel", role: .cancel) { }
@@ -58,14 +71,34 @@ struct DeleteAccountView: View {
             Button("Delete", role: .destructive) {
                 Task {
                     isDeleting = true
+                    let userId = vm.userSession?.uid
                     await vm.deleteAccount()
+                    if let userId {
+                        NotificationCenter.default.post(
+                            name: .userDeleted,
+                            object: userId
+                        )
+                    }
                     isDeleting = false
                     dismiss()
                 }
             }
-            
         } message: {
             Text("This action cannot be undone. Are you sure you want to continue?")
+        }
+        .disabled(isDeleting)
+        .overlay {
+            if isDeleting {
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    ProgressView("Deleting...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                }
+            }
         }
     }
 }

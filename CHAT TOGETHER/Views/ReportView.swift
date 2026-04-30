@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseFirestore
 
 struct ReportView: View {
     
@@ -77,7 +78,7 @@ struct ReportView: View {
                 if isProcessing {
                     ZStack {
                         Color.black.opacity(0.3).ignoresSafeArea()
-
+                        
                         ProgressView("Processing...")
                             .padding()
                             .background(Color(.systemBackground))
@@ -96,6 +97,9 @@ struct ReportView: View {
                         .padding(.top, 10)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
+            }
+            .onAppear {
+                listenUserDeletion()
             }
             .onChange(of: viewModel.isSuccess) { success in
                 if success {
@@ -205,5 +209,22 @@ struct ReportView: View {
                 }
             }
         }
+    }
+    
+    private func listenUserDeletion() {
+        Firestore.firestore()
+            .collection("users")
+            .document(reportedUserId)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Listen error:", error.localizedDescription)
+                    return
+                }
+                
+                if snapshot == nil || !(snapshot?.exists ?? false) {
+                    dismiss()
+                }
+            }
     }
 }

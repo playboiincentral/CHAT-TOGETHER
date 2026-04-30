@@ -52,7 +52,7 @@ final class AuthService {
                 email: user.email ?? "",
                 gender: nil,
                 bio: nil,
-                avatar: user.photoURL?.absoluteString,
+                avatar: nil,
                 createdAt: Date(),
                 fullnameChangeCount: 0,
                 fullnameLastResetAt: nil,
