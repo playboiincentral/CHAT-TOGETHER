@@ -71,14 +71,7 @@ struct DeleteAccountView: View {
             Button("Delete", role: .destructive) {
                 Task {
                     isDeleting = true
-                    let userId = vm.userSession?.uid
                     await vm.deleteAccount()
-                    if let userId {
-                        NotificationCenter.default.post(
-                            name: .userDeleted,
-                            object: userId
-                        )
-                    }
                     isDeleting = false
                     dismiss()
                 }
