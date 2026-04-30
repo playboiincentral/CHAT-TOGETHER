@@ -1259,7 +1259,7 @@ exports.sendMessageNotification = onDocumentCreated(
     // 🔥 LẤY SENDER INFO
     // =========================
     const senderSnap = await db.collection("users").doc(senderId).get();
-    const senderName = senderSnap.data()?.fullName || "CHAT TOGETHER";
+    const senderName = senderSnap.data()?.fullname || "CHAT TOGETHER";
 
     // =========================
     // 🔥 LẤY ROOM
