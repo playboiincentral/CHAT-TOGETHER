@@ -141,7 +141,7 @@ struct ChatView: View {
             } message: {
                 Text("You or this user has reached the maximum of 200 friends.")
             }
-            .alert("The other person has left the room.", isPresented: $viewModel.showPartnerLeftAlert) {
+            .alert("This conversation has ended. You can no longer send messages.", isPresented: $viewModel.showPartnerLeftAlert) {
                 Button("OK") {
                     dismiss()
                 }

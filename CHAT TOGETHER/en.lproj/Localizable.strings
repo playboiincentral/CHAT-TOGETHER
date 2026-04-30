@@ -97,6 +97,7 @@
 "Replying to yourself" = "Replying to yourself";
 "Replying" = "Replying";
 "Block User?" = "Block User?";
+"This conversation has ended. You can no longer send messages." = "This conversation has ended. You can no longer send messages.";
 
 // SettingsView
 "Appearance" = "Appearance";

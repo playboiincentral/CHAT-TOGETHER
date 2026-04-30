@@ -97,6 +97,7 @@
 "Replying to yourself" = "Đang trả lời chính mình";
 "Replying" = "Đang trả lời";
 "Block User?" = "Chặn Người Dùng?";
+"This conversation has ended. You can no longer send messages." = "Cuộc trò chuyện này đã kết thúc. Bạn không thể gửi tin nhắn nữa.";
 
 // SettingsView
 "Appearance" = "Giao Diện";
