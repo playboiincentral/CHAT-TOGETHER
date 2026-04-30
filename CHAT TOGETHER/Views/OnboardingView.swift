@@ -11,6 +11,7 @@ struct OnboardingView: View {
     
     @State private var showImagePicker = false
     @State private var previousDOB = ""
+    @FocusState private var isDOBFocused: Bool
     
     init() {
         UIScrollView.disableSwipe()
@@ -30,6 +31,7 @@ struct OnboardingView: View {
                     
                     TextField("MM/DD/YYYY", text: $onboardingVM.dobText)
                         .keyboardType(.numberPad)
+                        .focused($isDOBFocused)
                         .onChange(of: onboardingVM.dobText) { newValue in
                             defer { previousDOB = newValue }
                             
@@ -62,6 +64,7 @@ struct OnboardingView: View {
                     Spacer()
                     Text("Enter your display name *").font(.title2).fontWeight(.bold)
                     TextField("Display Name", text: $onboardingVM.displayName)
+                        .focused($isDOBFocused)
                         .font(.system(size: 17, weight: .medium))
                         .padding(.vertical, 14)
                         .padding(.horizontal, 12)
@@ -159,6 +162,7 @@ struct OnboardingView: View {
                     Text("Write a bio").font(.title2).fontWeight(.bold)
                     ZStack(alignment: .bottomTrailing) {
                         TextEditor(text: $onboardingVM.bio)
+                            .focused($isDOBFocused)
                             .frame(height: 150)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -279,6 +283,7 @@ struct OnboardingView: View {
     }
     
     func nextPage() {
+        isDOBFocused = false
         if onboardingVM.currentPage < 4 {
             onboardingVM.currentPage += 1
         }

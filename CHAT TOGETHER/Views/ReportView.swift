@@ -34,6 +34,8 @@ struct ReportView: View {
                             .font(.headline)
                         
                         TextEditor(text: $viewModel.description)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
                             .frame(height: 120)
                             .padding(8)
                             .background(Color.gray.opacity(0.1))
