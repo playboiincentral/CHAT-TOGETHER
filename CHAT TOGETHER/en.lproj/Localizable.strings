@@ -78,6 +78,7 @@
 "Bio" = "Bio";
 "Select" = "Select";
 "Save" = "Save";
+"You can only change your name twice within 14 days." = "You can only change your name twice within 14 days.";
 
 // ChatView
 "Unfriend?" = "Unfriend?";

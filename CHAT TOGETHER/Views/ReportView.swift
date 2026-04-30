@@ -62,13 +62,12 @@ struct ReportView: View {
                     } label: {
                         ZStack {
                             Text("Submit")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(viewModel.isValid ? .blue : .gray.opacity(0.5))
                                 .opacity(viewModel.isSubmitting || isProcessing ? 0 : 1)
                             
                             ProgressView()
                                 .opacity(viewModel.isSubmitting || isProcessing ? 1 : 0)
                         }
-                        .frame(width: 50)
                     }
                     .disabled(!viewModel.isValid || viewModel.isSubmitting || isProcessing)
                 }
@@ -200,6 +199,7 @@ struct ReportView: View {
                     isProcessing = false
                     
                     if success {
+                        NotificationCenter.default.post(name: .userBlocked, object: reportedUserId)
                         dismiss()
                     }
                 }

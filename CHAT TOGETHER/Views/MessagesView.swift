@@ -217,6 +217,8 @@ struct FriendCard: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.primary)
                 .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 100)
         }
     }
 }

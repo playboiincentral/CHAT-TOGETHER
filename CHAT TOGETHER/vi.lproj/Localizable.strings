@@ -78,6 +78,7 @@
 "Bio" = "Tiểu Sử";
 "Select" = "Chọn";
 "Save" = "Lưu";
+"You can only change your name twice within 14 days." = "Bạn chỉ có thể đổi tên mình 2 lần trong vòng 14 ngày.";
 
 // ChatView
 "Unfriend?" = "Xoá Bạn?";

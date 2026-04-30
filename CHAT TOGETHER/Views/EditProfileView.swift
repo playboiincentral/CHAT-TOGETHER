@@ -38,6 +38,11 @@ struct EditProfileView: View {
         !fullname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
+    var canEditName: Bool {
+        guard let user else { return true }
+        return canChangeFullname(user)
+    }
+    
     private let db = Firestore.firestore()
     private let storage = Storage.storage()
     
@@ -61,26 +66,40 @@ struct EditProfileView: View {
                         Text("Display Name")
                             .font(.headline)
                         
-                        TextField("Enter Display Name", text: $fullname)
-                            .font(.system(size: 17, weight: .medium))
-                            .padding(.vertical, 14)
-                            .padding(.horizontal, 12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.primary, lineWidth: 1.5)
-                            )
-                            .autocorrectionDisabled(true)
-                            .textInputAutocapitalization(.never)
-                            .onChange(of: fullname) { newValue in
-                                hasEdited = true
-                                let cleaned = newValue.replacingOccurrences(of: "\n", with: "")
-                                
-                                if cleaned.count > 32 {
-                                    fullname = String(cleaned.prefix(32))
-                                } else {
-                                    fullname = cleaned
+                        VStack(alignment: .leading, spacing: 10) {
+                            TextField("Enter Display Name", text: $fullname)
+                                .font(.system(size: 17, weight: .medium))
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.primary, lineWidth: 1.5)
+                                )
+                                .autocorrectionDisabled(true)
+                                .textInputAutocapitalization(.never)
+                                .disabled(!canEditName)
+                                .opacity(canEditName ? 1 : 0.5)
+                                .onChange(of: fullname) { newValue in
+                                    
+                                    guard canEditName else {
+                                                fullname = user?.fullname ?? ""
+                                                return
+                                            }
+                                    
+                                    hasEdited = true
+                                    let cleaned = newValue.replacingOccurrences(of: "\n", with: "")
+                                    
+                                    if cleaned.count > 32 {
+                                        fullname = String(cleaned.prefix(32))
+                                    } else {
+                                        fullname = cleaned
+                                    }
                                 }
-                            }
+                            
+                            Text("You can only change your name twice within 14 days.")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
                     }
                     
                     // MARK: Gender
@@ -116,7 +135,6 @@ struct EditProfileView: View {
                         ProgressView()
                             .opacity(isSaving ? 1 : 0)
                     }
-                    .frame(width: 50)
                 }
                 .disabled(isSaving || !isValid)
             }
@@ -309,6 +327,31 @@ struct EditProfileView: View {
             data["avatar"] = avatarURL
         }
         
+        if let user {
+            let now = Date()
+            
+            let lastReset = user.fullnameLastResetAt ?? now
+            let days = Calendar.current.dateComponents([.day], from: lastReset, to: now).day ?? 0
+            
+            let currentCount = user.fullnameChangeCount
+            
+            if user.fullnameLastResetAt == nil || days >= 14 {
+                // 🔥 reset cycle mới
+                data["fullnameChangeCount"] = 1
+                data["fullnameLastResetAt"] = Timestamp(date: now)
+            } else {
+                // 🔥 chỉ tăng nếu chưa vượt 2
+                if currentCount < 2 {
+                    data["fullnameChangeCount"] = FieldValue.increment(Int64(1))
+                } else {
+                    // optional safety (không bắt buộc UI nhưng an toàn data)
+                    data["fullnameChangeCount"] = 2
+                }
+            }
+            
+            data["fullnameLastChangedAt"] = Timestamp(date: now)
+        }
+        
         db.collection("users")
             .document(uid)
             .setData(data, merge: true) { error in
@@ -322,5 +365,19 @@ struct EditProfileView: View {
                 
                 dismiss()
             }
+    }
+    
+    func canChangeFullname(_ user: AppUser) -> Bool {
+        let now = Date()
+        
+        let lastReset = user.fullnameLastResetAt ?? .distantPast
+        let daysPassed = Calendar.current.dateComponents([.day], from: lastReset, to: now).day ?? 0
+        
+        // reset sau 14 ngày
+        if daysPassed >= 14 {
+            return true
+        }
+        
+        return user.fullnameChangeCount < 2
     }
 }

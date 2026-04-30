@@ -96,6 +96,28 @@ struct ChatView: View {
                     dismiss()
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .userRemoved)) { notification in
+                
+                guard let removedUserId = notification.object as? String else { return }
+                
+                guard removedUserId == viewModel.partner?.uid else { return }
+                
+                if viewModel.room.type == .friend {
+                    viewModel.shouldDismiss = true
+                    viewModel.cleanupAfterBlock()
+                } else {
+                    viewModel.cleanupAfterUnfriendInRandom()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .userBlocked)) { notification in
+                
+                guard let blockedUserId = notification.object as? String else { return }
+                
+                guard blockedUserId == viewModel.partner?.uid else { return }
+                
+                viewModel.shouldDismiss = true
+                viewModel.cleanupAfterBlock()
+            }
             .onReceive(viewModel.$isAITyping) { value in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isAITyping = value
@@ -205,7 +227,7 @@ struct ChatView: View {
             .sheet(item: $selectedUser) { partner in
                 ProfileView(
                     user: partner,
-                    roomId: viewModel.room.id,
+                    roomId: viewModel.room.roomId,
                     isCurrentUser: false
                 )
             }
@@ -806,8 +828,13 @@ struct ChatView: View {
             
             DispatchQueue.main.async {
                 isProcessing = false
-                if !success {
-                    print("Remove friend failed")
+                if success {
+                    if viewModel.room.type == .friend {
+                        viewModel.shouldDismiss = true
+                        viewModel.cleanupAfterBlock()
+                    } else {
+                        viewModel.cleanupAfterUnfriendInRandom()
+                    }
                 }
             }
         }

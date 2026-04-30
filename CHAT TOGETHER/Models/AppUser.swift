@@ -28,6 +28,10 @@ struct AppUser: Codable, Identifiable, Hashable {
     var avatar: String?
     var createdAt: Date?
     
+    var fullnameChangeCount: Int = 0
+    var fullnameLastResetAt: Date? = nil
+    var fullnameLastChangedAt: Date? = nil
+    
     var status: UserStatus = .active
     var banType: BanType? = nil
     var banUntil: Date? = nil

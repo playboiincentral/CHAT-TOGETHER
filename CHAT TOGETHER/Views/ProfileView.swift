@@ -141,6 +141,14 @@ struct ProfileView: View {
                     }
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .userBlocked)) { notification in
+                
+                guard let blockedUserId = notification.object as? String else { return }
+                
+                if blockedUserId == viewModel.user?.uid {
+                    dismiss()
+                }
+            }
             .disabled(isProcessing)
             .overlay {
                 if isProcessing {
@@ -317,8 +325,9 @@ struct ProfileView: View {
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             DispatchQueue.main.async {
                 isProcessing = false
-                if !success {
-                    print("Remove friend failed")
+                if success {
+                    NotificationCenter.default.post(name: .userRemoved, object: partnerId)
+                    dismiss()
                 }
             }
         }
@@ -335,6 +344,7 @@ struct ProfileView: View {
                 isProcessing = false
                 
                 if success {
+                    NotificationCenter.default.post(name: .userBlocked, object: partnerId)
                     dismiss()
                 }
             }

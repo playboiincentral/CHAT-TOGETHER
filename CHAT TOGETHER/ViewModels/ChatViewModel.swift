@@ -446,4 +446,9 @@ class ChatViewModel: ObservableObject {
         friendshipListener?.remove()
         friendshipListener = nil
     }
+    
+    func cleanupAfterUnfriendInRandom() {
+        friendshipListener?.remove()
+        friendshipListener = nil
+    }
 }
