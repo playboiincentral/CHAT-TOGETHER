@@ -24,6 +24,7 @@ struct RequestsView: View {
     
     @EnvironmentObject var relationManager: RelationManager
     @State private var selectedTab: RequestTab = .received
+    @State private var isAccepting: Bool = false
     
     private let columns = [
         GridItem(.flexible()),
@@ -159,9 +160,7 @@ extension RequestsView {
     
     func accept(userId: String) {
         guard let requestId = relationManager.requestId(from: userId) else { return }
-        
-        relationManager.markAsFriendLocally(with: userId)
-        
+                
         UserRelationService.shared.acceptFriendRequest(
             requestId: requestId,
             partnerId: userId
@@ -169,8 +168,7 @@ extension RequestsView {
             
             DispatchQueue.main.async {
                 if !success {
-                    // ❗ rollback nếu fail
-                    relationManager.rollbackFriendState(with: userId)
+                    
                 }
             }
         }

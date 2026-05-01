@@ -22,7 +22,7 @@ struct SentCard: View {
                         .scaledToFill()
                         .aspectRatio(3/4, contentMode: .fill)
                         .frame(minWidth: 0, maxWidth: .infinity)
-                        .frame(height: 200)
+                        .frame(height: 220)
                 } else {
                     ZStack {
                         RoundedRectangle(cornerRadius: 20).fill(Color.gray.opacity(0.2))
@@ -31,7 +31,7 @@ struct SentCard: View {
                     }
                     .aspectRatio(3/4, contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity)
-                    .frame(height: 200)
+                    .frame(height: 220)
                 }
                 
                 // 🔥 GRADIENT
