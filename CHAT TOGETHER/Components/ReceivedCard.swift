@@ -10,7 +10,7 @@ struct ReceivedCard: View {
     @State private var isRejecting = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading) {
             ZStack(alignment: .bottomLeading) {
                 if let avatar = user.avatar, let url = URL(string: avatar) {
                     KFImage(url)
@@ -24,7 +24,7 @@ struct ReceivedCard: View {
                         .scaledToFill()
                         .aspectRatio(3/4, contentMode: .fill)
                         .frame(minWidth: 0, maxWidth: .infinity)
-                        .frame(height: 220)
+                        .frame(height: 230)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                 } else {
                     ZStack {
@@ -53,16 +53,16 @@ struct ReceivedCard: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 20))
             
-            HStack(spacing: 10) {
+            HStack(spacing: 5) {
                 Button {
                     isRejecting = true
                     rejectAction()
                 } label: {
                     if isRejecting {
                         ProgressView()
-                            .controlSize(.small)
                     } else {
                         Image(systemName: "xmark")
+                            .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.red)
                     }
@@ -70,7 +70,7 @@ struct ReceivedCard: View {
                 .disabled(isRejecting)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(.ultraThinMaterial)
+                .background(Color(.systemBackground))
                 .clipShape(Circle())
                 
                 Button {
@@ -79,9 +79,9 @@ struct ReceivedCard: View {
                 } label: {
                     if isAccepting {
                         ProgressView()
-                            .controlSize(.small)
                     } else {
                         Image(systemName: "checkmark")
+                            .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.green)
                     }
@@ -89,12 +89,12 @@ struct ReceivedCard: View {
                 .disabled(isAccepting)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(.ultraThinMaterial)
+                .background(Color(.systemBackground))
                 .clipShape(Circle())
             }
             .padding(10)
         }
-        .padding(8)
+//        .padding(8)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }

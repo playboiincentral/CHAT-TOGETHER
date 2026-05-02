@@ -11,8 +11,8 @@
 "Done" = "Xong";
 "Match" = "Tìm Bạn";
 "Requests" = "Lời Mời";
-"Chat" = "Tin Nhắn";
 "Reconnecting..." = "Đang kết nối lại...";
+"Connecting..." = "Đang kết nối...";
 
 // LoginView
 "By continuing, you agree to our" = "Bằng việc tiếp tục, bạn đồng ý với";

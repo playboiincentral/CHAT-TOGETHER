@@ -17,79 +17,81 @@ struct DeleteAccountView: View {
     @State private var showConfirmDelete = false
     
     var body: some View {
-        VStack {
-            
-            Spacer()
-            
-            // ⚠️ Warning text
-            VStack(spacing: 16) {
+        NavigationStack {
+            VStack {
                 
-                Text("Delete your account?")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                Spacer()
                 
-                Text("This action is permanent and cannot be undone. All your data, messages, and connections will be permanently deleted.")
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                // ⚠️ Warning text
+                VStack(spacing: 16) {
+                    
+                    Text("Delete your account?")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+                    
+                    Text("This action is permanent and cannot be undone. All your data, messages, and connections will be permanently deleted.")
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                
+                Spacer()
+                
+                // 🔴 Delete button
+                Button {
+                    showConfirmDelete = true
+                } label: {
+                    Text(isDeleting ? "Deleting..." : "Delete My Account")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(.systemGray5))
+                }
+                .disabled(isDeleting)
+                .padding(.bottom)
             }
-            
-            Spacer()
-            
-            // 🔴 Delete button
-            Button {
-                showConfirmDelete = true
-            } label: {
-                Text(isDeleting ? "Deleting..." : "Delete My Account")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray5))
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .alert("Delete Account?", isPresented: $showConfirmDelete) {
+                
+                Button("Cancel", role: .cancel) { }
+                
+                Button("Delete", role: .destructive) {
+                    Task {
+                        isDeleting = true
+                        await vm.deleteAccount()
+                        isDeleting = false
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text("This action cannot be undone. Are you sure you want to continue?")
             }
             .disabled(isDeleting)
-            .padding(.bottom)
-        }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                }
-            }
-        }
-        .alert("Delete Account?", isPresented: $showConfirmDelete) {
-            
-            Button("Cancel", role: .cancel) { }
-            
-            Button("Delete", role: .destructive) {
-                Task {
-                    isDeleting = true
-                    await vm.deleteAccount()
-                    isDeleting = false
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("This action cannot be undone. Are you sure you want to continue?")
-        }
-        .disabled(isDeleting)
-        .overlay {
-            if isDeleting {
-                ZStack {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                    
-                    ProgressView("Deleting...")
-                        .padding()
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
+            .overlay {
+                if isDeleting {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        
+                        ProgressView("Deleting...")
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                    }
                 }
             }
         }

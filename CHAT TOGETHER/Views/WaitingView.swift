@@ -59,7 +59,7 @@ struct WaitingView: View {
                 .cacheOriginalImage(true)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 80, height: 80)
+                .frame(width: 95, height: 95)
                 .clipShape(Circle())
         } else {
             ZStack {
@@ -67,7 +67,7 @@ struct WaitingView: View {
                 Image(systemName: "person.fill")
                     .foregroundColor(.gray)
             }
-            .frame(width: 80, height: 80)
+            .frame(width: 95, height: 95)
         }
     }
 }

@@ -27,6 +27,8 @@ struct SettingsView: View {
     @EnvironmentObject private var vm: AuthViewModel
     @EnvironmentObject var currentUserManager: CurrentUserManager
     @State private var isDeleting = false
+    @State private var showDeleteAccount = false
+    
     var body: some View {
         NavigationStack {
             List {
@@ -87,15 +89,14 @@ struct SettingsView: View {
                 
                 // MARK: - Delete Account
                 Section {
-                    NavigationLink {
-                        DeleteAccountView()
+                    Button {
+                        showDeleteAccount = true
                     } label: {
                         Text("Delete Account")
                             .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-                
             }
             .navigationTitle("Settings")
             .listStyle(.insetGrouped)
@@ -110,6 +111,9 @@ struct SettingsView: View {
                             .foregroundStyle(.blue)
                     }
                 }
+            }
+            .fullScreenCover(isPresented: $showDeleteAccount) {
+                DeleteAccountView()
             }
         }
     }

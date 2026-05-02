@@ -711,7 +711,7 @@ exports.onMessageCreated = onDocumentCreated(
 
     // 🔥 Clean message hiện tại
     const prompt = data.text.replace(mentionRegex, "").trim();
-    if (!prompt) return;
+    const finalPrompt = prompt || "User just mentioned you, respond naturally in chat.";
 
     const roomId = event.params.roomId;
 
@@ -753,7 +753,7 @@ if (history.length > 0) {
 
   if (last.role === "user") {
     const name = data.senderName || "Unknown";
-    last.content = `[${name}]: ${prompt}`;
+    last.content = `[${name}]: ${finalPrompt}`;
   }
 }
 
