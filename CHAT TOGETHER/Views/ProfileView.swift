@@ -148,20 +148,6 @@ struct ProfileView: View {
                     }
                 }
             }
-            .disabled(isProcessing)
-            .overlay {
-                if isProcessing {
-                    ZStack {
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea()
-                        
-                        ProgressView("Processing...")
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                    }
-                }
-            }
             .sheet(isPresented: $showEditProfile) {
                 NavigationStack {
                     EditProfileView()
@@ -207,6 +193,20 @@ struct ProfileView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("You or this user has reached the maximum of 200 friends.")
+            }
+        }
+        .disabled(isProcessing)
+        .overlay {
+            if isProcessing {
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    ProgressView("Processing...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                }
             }
         }
     }

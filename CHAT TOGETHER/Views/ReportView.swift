@@ -78,19 +78,6 @@ struct ReportView: View {
                     .disabled(!viewModel.isValid || viewModel.isSubmitting || isProcessing)
                 }
             }
-            .disabled(isProcessing)
-            .overlay {
-                if isProcessing {
-                    ZStack {
-                        Color.black.opacity(0.3).ignoresSafeArea()
-                        
-                        ProgressView("Processing...")
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                    }
-                }
-            }
             .overlay(alignment: .top) {
                 if showToast {
                     Text("Report submitted.")
@@ -144,6 +131,19 @@ struct ReportView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(viewModel.errorMessage ?? "")
+            }
+        }
+        .disabled(isProcessing)
+        .overlay {
+            if isProcessing {
+                ZStack {
+                    Color.black.opacity(0.3).ignoresSafeArea()
+                    
+                    ProgressView("Processing...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                }
             }
         }
     }

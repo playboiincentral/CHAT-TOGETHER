@@ -154,20 +154,6 @@ struct ChatView: View {
             } message: {
                 Text("You will not be matched with this person again. This action cannot be undone. Are you sure you want to continue?")
             }
-            .disabled(isProcessing)
-            .overlay {
-                if isProcessing {
-                    ZStack {
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea()
-                        
-                        ProgressView("Processing...")
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                    }
-                }
-            }
             .overlay {
                 if let message = selectedMessage, showOverlay {
                     ZStack {
@@ -250,6 +236,20 @@ struct ChatView: View {
                             handleBlockFromProfile()
                         }
                     )
+                }
+            }
+        }
+        .disabled(isProcessing)
+        .overlay {
+            if isProcessing {
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    ProgressView("Processing...")
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
                 }
             }
         }
