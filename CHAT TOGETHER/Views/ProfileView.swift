@@ -19,12 +19,18 @@ struct ProfileView: View {
     let isCurrentUser: Bool
     let roomId: String?
     let userId: String?
+    let roomType: ChatRoomType?
+    let onUnfriend: (() -> Void)?
+    let onBlock: (() -> Void)?
     
-    init(user: AppUser, roomId: String? = nil, isCurrentUser: Bool = false) {
+    init(user: AppUser, roomId: String? = nil, isCurrentUser: Bool = false, roomType: ChatRoomType? = nil, onUnfriend: (() -> Void)? = nil, onBlock: (() -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: ProfileViewModel(user: user))
         self.roomId = roomId
         self.isCurrentUser = isCurrentUser
         self.userId = user.uid
+        self.roomType = roomType
+        self.onUnfriend = onUnfriend
+        self.onBlock = onBlock
     }
     
     var displayUser: AppUser? {
@@ -140,15 +146,6 @@ struct ProfileView: View {
                     if let userId = userId {
                         viewModel.fetchUser(uid: userId)
                     }
-                    listenUserDeletion()
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .userBlocked)) { notification in
-                
-                guard let blockedUserId = notification.object as? String else { return }
-                
-                if blockedUserId == viewModel.user?.uid {
-                    dismiss()
                 }
             }
             .disabled(isProcessing)
@@ -178,7 +175,9 @@ struct ProfileView: View {
                     ReportView(
                         roomId: roomId,
                         reporterId: reporterId,
-                        reportedUserId: partnerId
+                        reportedUserId: partnerId,
+                        roomType: roomType,
+                        onBlock: onBlock
                     )
                 }
             }
@@ -317,19 +316,17 @@ struct ProfileView: View {
             }
         }
     }
-    
+        
     private func removeFriend() {
         guard let partnerId = viewModel.user?.uid else { return }
         guard !isProcessing else { return }
         
         isProcessing = true
-        
         UserRelationService.shared.removeFriend(partnerId: partnerId) { success in
             DispatchQueue.main.async {
                 isProcessing = false
                 if success {
-                    NotificationCenter.default.post(name: .userRemoved, object: partnerId)
-                    dismiss()
+                    onUnfriend?()
                 }
             }
         }
@@ -340,14 +337,13 @@ struct ProfileView: View {
         guard !isProcessing else { return }
         
         isProcessing = true
-        
+
         UserRelationService.shared.blockUser(targetUserId: partnerId) { success in
             DispatchQueue.main.async {
                 isProcessing = false
                 
                 if success {
-                    NotificationCenter.default.post(name: .userBlocked, object: partnerId)
-                    dismiss()
+                    onBlock?()
                 }
             }
         }
@@ -427,23 +423,5 @@ struct ProfileView: View {
         UserRelationService.shared.declineFriendRequest(
             requestId: requestId
         ) { _ in }
-    }
-    
-    private func listenUserDeletion() {
-        guard let uid = viewModel.user?.uid else { return }
-        Firestore.firestore()
-            .collection("users")
-            .document(uid)
-            .addSnapshotListener { snapshot, error in
-                
-                if let error = error {
-                    print("Listen error:", error.localizedDescription)
-                    return
-                }
-                
-                if snapshot == nil || !(snapshot?.exists ?? false) {
-                    dismiss()
-                }
-            }
     }
 }

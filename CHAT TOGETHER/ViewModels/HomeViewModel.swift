@@ -20,6 +20,7 @@ class HomeViewModel: ObservableObject {
     @Published var isCheckingRoom = true
     @Published var showWaitingView = false
     @Published var partnerAvatar: String?
+    @Published var didCancelMatching: Bool = false
     
     private var listener: ListenerRegistration?
     private var timer: Timer?
@@ -46,6 +47,8 @@ class HomeViewModel: ObservableObject {
         // 🔥 BLOCK nếu đã có room
         guard currentRoom == nil else { return }
         
+        didCancelMatching = false
+        
         cleanup()
         
         elapsedSeconds = 0
@@ -58,6 +61,7 @@ class HomeViewModel: ObservableObject {
     
     // MARK: - Stop Matching
     func stopMatching() {
+        didCancelMatching = true
         cleanup()
         leaveQueue()
     }
@@ -113,6 +117,11 @@ class HomeViewModel: ObservableObject {
                 guard self.currentRoom == nil else { return }
                 guard let document = snapshot?.documents.first else { return }
                 
+                guard !self.didCancelMatching else {
+                    print("⚠️ Ignored room because user cancelled matching")
+                    return
+                }
+                
                 let data = document.data()
                 
                 let room = ChatRoom(
@@ -136,11 +145,11 @@ class HomeViewModel: ObservableObject {
                         DispatchQueue.main.async {
                             self.partnerAvatar = avatar
                             if let room = self.currentRoom,
-                                       let userId = Auth.auth().currentUser?.uid,
-                                       let partnerId = room.users.first(where: { $0 != userId }) {
-                                        
-                                        AvatarCache.shared.set(partnerId, avatar: avatar)
-                                    }
+                               let userId = Auth.auth().currentUser?.uid,
+                               let partnerId = room.users.first(where: { $0 != userId }) {
+                                
+                                AvatarCache.shared.set(partnerId, avatar: avatar)
+                            }
                         }
                     }
                 }
@@ -217,9 +226,9 @@ class HomeViewModel: ObservableObject {
         }
         
         if let cached = AvatarCache.shared.get(partnerId) {
-                completion(cached)
-                return
-            }
+            completion(cached)
+            return
+        }
         
         Firestore.firestore()
             .collection("users")

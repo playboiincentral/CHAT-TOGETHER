@@ -60,4 +60,13 @@ class OnboardingViewModel: ObservableObject {
         
         return ageComponents.year
     }
+    
+    func reset() {
+        dobText = ""
+        displayName = ""
+        gender = nil
+        avatar = nil
+        bio = ""
+        currentPage = 0
+    }
 }

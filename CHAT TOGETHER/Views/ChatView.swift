@@ -88,6 +88,9 @@ struct ChatView: View {
                 viewModel.messages = []
                 viewModel.fetchPartner()
                 viewModel.handleOnAppear()
+                viewModel.listenIfLeaveRoom()
+                viewModel.listenIfUnfriend()
+                viewModel.listenIfBlocked()
                 viewModel.listenUserDeletion()
             }
             .onChange(of: viewModel.shouldDismiss) { value in
@@ -96,28 +99,6 @@ struct ChatView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     dismiss()
                 }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .userRemoved)) { notification in
-                
-                guard let removedUserId = notification.object as? String else { return }
-                
-                guard removedUserId == viewModel.partner?.uid else { return }
-                
-                if viewModel.room.type == .friend {
-                    viewModel.shouldDismiss = true
-                    viewModel.cleanupAfterBlock()
-                } else {
-                    viewModel.cleanupAfterUnfriendInRandom()
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .userBlocked)) { notification in
-                
-                guard let blockedUserId = notification.object as? String else { return }
-                
-                guard blockedUserId == viewModel.partner?.uid else { return }
-                
-                viewModel.shouldDismiss = true
-                viewModel.cleanupAfterBlock()
             }
             .onReceive(viewModel.$isAITyping) { value in
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -228,7 +209,14 @@ struct ChatView: View {
                 ProfileView(
                     user: partner,
                     roomId: viewModel.room.roomId,
-                    isCurrentUser: false
+                    isCurrentUser: false,
+                    roomType: viewModel.room.type,
+                    onUnfriend: {
+                        handleUnfriendFromProfile()
+                    },
+                    onBlock: {
+                        handleBlockFromProfile()
+                    }
                 )
             }
             .confirmationDialog("Options", isPresented: $showMoreSheet) {
@@ -256,11 +244,29 @@ struct ChatView: View {
                     ReportView(
                         roomId: viewModel.room.roomId,
                         reporterId: userId,
-                        reportedUserId: partnerId
+                        reportedUserId: partnerId,
+                        roomType: viewModel.room.type,
+                        onBlock: {
+                            handleBlockFromProfile()
+                        }
                     )
                 }
             }
         }
+    }
+    
+    private func handleUnfriendFromProfile() {
+        if viewModel.room.type == .friend {
+            viewModel.shouldDismiss = true
+            viewModel.cleanupAfterBlock()
+        } else {
+            viewModel.cleanupAfterUnfriendInRandom()
+        }
+    }
+    
+    private func handleBlockFromProfile() {
+            viewModel.shouldDismiss = true
+            viewModel.cleanupAfterBlock()
     }
     
     private var headerView: some View {

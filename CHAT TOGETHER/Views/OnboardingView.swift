@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @State private var showImagePicker = false
     @State private var previousDOB = ""
     @FocusState private var isDOBFocused: Bool
+    @State private var tabViewID = UUID()
     
     init() {
         UIScrollView.disableSwipe()
@@ -187,6 +188,7 @@ struct OnboardingView: View {
                 }
                 .tag(4)
             }
+            .id(tabViewID)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(image: $onboardingVM.avatar)
@@ -261,6 +263,10 @@ struct OnboardingView: View {
                         .cornerRadius(12)
                 }
             }
+        }
+        .onAppear {
+            onboardingVM.reset()
+            tabViewID = UUID()
         }
     }
     

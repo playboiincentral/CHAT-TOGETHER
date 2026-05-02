@@ -28,6 +28,10 @@ class ChatViewModel: ObservableObject {
     
     private var roomListener: ListenerRegistration?
     private let currentUserManager: CurrentUserManager
+    private var leaveRoomListener: ListenerRegistration?
+    private var unfriendListener: ListenerRegistration?
+    private var blockListener: ListenerRegistration?
+    private var userDeletionListener: ListenerRegistration?
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         self.room = room
@@ -43,18 +47,21 @@ class ChatViewModel: ObservableObject {
         if room.type == .random {
             startHeartbeat()
         }
-        
-        listenFriendship()
     }
     
     deinit {
         if room.type == .random {
             stopHeartbeat()
         }
-        
+
         listener?.remove()
         roomListener?.remove()
         friendshipListener?.remove()
+
+        leaveRoomListener?.remove()
+        unfriendListener?.remove()
+        blockListener?.remove()
+        userDeletionListener?.remove()
     }
     
     private func startHeartbeat() {
@@ -114,6 +121,7 @@ class ChatViewModel: ObservableObject {
     
     // MARK: - Listen messages
     private func listenMessages() {
+        guard listener == nil else { return }
         listener = db.collection("chatRooms")
             .document(room.roomId)
             .collection("messages")
@@ -159,7 +167,7 @@ class ChatViewModel: ObservableObject {
     }
     
     private func listenRoomStatus() {
-        
+        guard roomListener == nil else { return }
         roomListener = db.collection("chatRooms")
             .document(room.roomId)
             .addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, _ in
@@ -397,42 +405,7 @@ class ChatViewModel: ObservableObject {
             sendHeartbeat()
         }
     }
-    
-    func listenFriendship() {
-        guard room.type == .friend else { return }
-        guard let currentUserId = userId else { return }
         
-        let partnerId = room.users.first { $0 != currentUserId }
-        guard let partnerId = partnerId else { return }
-        
-        let sorted = [currentUserId, partnerId].sorted()
-        let friendshipId = sorted.joined(separator: "_")
-        
-        let ref = db.collection("friendships").document(friendshipId)
-        
-        friendshipListener = ref.addSnapshotListener { [weak self] snapshot, _ in
-            guard let self = self else { return }
-            
-            // ❌ doc bị xoá = unfriend
-            if snapshot == nil || snapshot?.exists == false {
-                
-                DispatchQueue.main.async {
-                    self.showUnfriendAlert = true
-                    
-                    // 🔥 cleanup để tránh bug
-                    self.listener?.remove()
-                    self.listener = nil
-                    
-                    self.roomListener?.remove()
-                    self.roomListener = nil
-                    
-                    self.friendshipListener?.remove()
-                    self.friendshipListener = nil
-                }
-            }
-        }
-    }
-    
     func cleanupAfterBlock() {
         isRoomActive = false
         
@@ -444,6 +417,18 @@ class ChatViewModel: ObservableObject {
         
         friendshipListener?.remove()
         friendshipListener = nil
+        
+        leaveRoomListener?.remove()
+        leaveRoomListener = nil
+
+        unfriendListener?.remove()
+        unfriendListener = nil
+
+        blockListener?.remove()
+        blockListener = nil
+
+        userDeletionListener?.remove()
+        userDeletionListener = nil
     }
     
     func cleanupAfterUnfriendInRandom() {
@@ -451,15 +436,109 @@ class ChatViewModel: ObservableObject {
         friendshipListener = nil
     }
     
-    func listenUserDeletion() {
-        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+    func listenIfLeaveRoom() {
         
+        guard room.type == .random else { return }
+        
+        leaveRoomListener = db
+            .collection("chatRooms")
+            .document(room.roomId)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("listen room error:", error.localizedDescription)
+                    return
+                }
+                
+                guard let snapshot = snapshot else { return }
+                
+                // ❌ room bị xoá
+                if !snapshot.exists {
+                    DispatchQueue.main.async {
+                        self.shouldDismiss = true
+                    }
+                    return
+                }
+                
+                guard let data = snapshot.data() else { return }
+                
+                let status = data["status"] as? String ?? ""
+                
+                // ❌ room ended
+                if status == "ended" {
+                    DispatchQueue.main.async {
+                        self.shouldDismiss = true
+                    }
+                }
+            }
+    }
+    
+    func listenIfUnfriend() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        guard let partnerId = room.users.first(where: { $0 != currentUid }) else {
+            print("No partner found")
+            return
+        }
+        let id = [currentUid, partnerId].sorted().joined(separator: "_")
+
+        unfriendListener = db
+            .collection("friendships")
+            .document(id)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Friend listen error:", error.localizedDescription)
+                    return
+                }
+
+                // ❗ document bị xoá = unfriend
+                if snapshot == nil || !(snapshot?.exists ?? false) {
+                    DispatchQueue.main.async {
+                        if self.room.type == .friend {
+                            self.shouldDismiss = true
+                            self.cleanupAfterBlock()
+                        } else {
+                            self.cleanupAfterUnfriendInRandom()
+                        }
+                    }
+                }
+            }
+    }
+    
+    func listenIfBlocked() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
         guard let partnerId = room.users.first(where: { $0 != currentUid }) else {
             print("No partner found")
             return
         }
         
-        db.collection("users")
+        blockListener = db
+            .collection("blocks")
+            .whereField("blockerId", isEqualTo: partnerId) // 👈 A
+            .whereField("blockedId", isEqualTo: currentUid)     // 👈 B
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Listen block error:", error.localizedDescription)
+                    return
+                }
+                
+                // 👇 có document = bị block
+                if let documents = snapshot?.documents, !documents.isEmpty {
+                    self.shouldDismiss = true
+                    self.cleanupAfterBlock()
+                }
+            }
+    }
+    
+    func listenUserDeletion() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        guard let partnerId = room.users.first(where: { $0 != currentUid }) else {
+            print("No partner found")
+            return
+        }
+        
+         userDeletionListener = db.collection("users")
             .document(partnerId)
             .addSnapshotListener { snapshot, error in
                 

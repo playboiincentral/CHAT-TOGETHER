@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 import FirebaseFirestore
 
 struct ReportView: View {
@@ -12,7 +13,9 @@ struct ReportView: View {
     let roomId: String
     let reporterId: String
     let reportedUserId: String
-    
+    let roomType: ChatRoomType?
+    let onBlock: (() -> Void)?
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -101,6 +104,11 @@ struct ReportView: View {
                 }
             }
             .onAppear {
+                listenIfLeaveRoom()
+                if roomType == .friend {
+                    listenIfUnfriend()
+                }
+                listenIfBlocked()
                 listenUserDeletion()
             }
             .onChange(of: viewModel.isSuccess) { success in
@@ -199,18 +207,94 @@ struct ReportView: View {
         )
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            
             UserRelationService.shared.blockUser(targetUserId: reportedUserId) { success in
                 DispatchQueue.main.async {
                     isProcessing = false
-                    
                     if success {
-                        NotificationCenter.default.post(name: .userBlocked, object: reportedUserId)
                         dismiss()
+                        onBlock?()
                     }
                 }
             }
         }
+    }
+    
+    private func listenIfLeaveRoom() {
+        
+        guard roomType == .random else { return }
+        
+        Firestore.firestore()
+            .collection("chatRooms")
+            .document(roomId)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("listen room error:", error.localizedDescription)
+                    return
+                }
+                
+                guard let snapshot = snapshot else { return }
+                
+                // ❌ room bị xoá
+                if !snapshot.exists {
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                    return
+                }
+                
+                guard let data = snapshot.data() else { return }
+                
+                let status = data["status"] as? String ?? ""
+                
+                // ❌ room ended
+                if status == "ended" {
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                }
+            }
+    }
+    
+    private func listenIfUnfriend() {
+        let id = [reporterId, reportedUserId].sorted().joined(separator: "_")
+
+        Firestore.firestore()
+            .collection("friendships")
+            .document(id)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Friend listen error:", error.localizedDescription)
+                    return
+                }
+
+                // ❗ document bị xoá = unfriend
+                if snapshot == nil || !(snapshot?.exists ?? false) {
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                }
+            }
+    }
+    
+    private func listenIfBlocked() {
+        Firestore.firestore()
+            .collection("blocks")
+            .whereField("blockerId", isEqualTo: reportedUserId) // 👈 A
+            .whereField("blockedId", isEqualTo: reporterId)     // 👈 B
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Listen block error:", error.localizedDescription)
+                    return
+                }
+                
+                // 👇 có document = bị block
+                if let documents = snapshot?.documents, !documents.isEmpty {
+                    dismiss()
+                }
+            }
     }
     
     private func listenUserDeletion() {
