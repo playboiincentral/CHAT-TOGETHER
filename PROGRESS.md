@@ -28,3 +28,11 @@
 
 ### ❌ Chưa làm
 - Tài liệu
+
+## 02/05/2026
+
+### ✅ Đã hoàn thành
+- ChatbotAI
+
+### ❌ Chưa làm
+- Tài liệu
