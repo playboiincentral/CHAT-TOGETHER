@@ -158,4 +158,14 @@ final class AuthViewModel: ObservableObject {
         
         isLoading = false
     }
+    
+    func signInAsGuest() async {
+        do {
+            isLoading = true
+            try await AuthService.shared.signInAsGuest()
+        } catch {
+            print("❌ Guest login error:", error.localizedDescription)
+        }
+        isLoading = false
+    }
 }
