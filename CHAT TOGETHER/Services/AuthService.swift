@@ -67,38 +67,4 @@ final class AuthService {
             try docRef.setData(from: newUser)
         }
     }
-    
-    func signInAsGuest() async throws {
-        let result = try await auth.signInAnonymously()
-        
-        // Tạo user trong Firestore nếu cần
-        try await saveGuestUserIfNeeded(result.user)
-    }
-    
-    private func saveGuestUserIfNeeded(_ user: User) async throws {
-        let docRef = db.collection("users").document(user.uid)
-        let snapshot = try await docRef.getDocument()
-        
-        if !snapshot.exists {
-            let guestUser = AppUser(
-                uid: user.uid,
-                fullname: "Guest",
-                email: "",
-                gender: nil,
-                bio: nil,
-                avatar: nil,
-                createdAt: Date(),
-                fullnameChangeCount: 0,
-                fullnameLastResetAt: nil,
-                fullnameLastChangedAt: nil,
-                status: .active,
-                warnings: 0,
-                lastWarningAt: nil,
-                lastSeenWarning: 0,
-                isAdmin: false
-            )
-            
-            try docRef.setData(from: guestUser)
-        }
-    }
 }

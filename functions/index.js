@@ -155,6 +155,7 @@ exports.joinQueue = onCall(async (request) => {
           activeUsers: [userId, partnerId],
           status: "active",
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000),
           endedAt: null,
           endedBy: null,
           lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -310,44 +311,6 @@ exports.getOrCreateFriendRoom = onCall(async (request) => {
 
   return { roomId };
 });
-
-// =======================================================
-// 3️⃣ DETECT INACTIVE ROOMS (Heartbeat timeout)
-// =======================================================
-
-exports.detectInactiveRooms = onSchedule(
-  "every 1 minutes",
-  async () => {
-
-    const timeoutTime = new Date(Date.now() - 30 * 1000);
-
-    const snapshot = await db.collection("chatRooms")
-      .where("status", "==", "active")
-      .where("type", "==", "random")
-      .get();
-
-    for (const doc of snapshot.docs) {
-
-      const room = doc.data();
-      const lastActivity = room.lastActivityAt
-        ? room.lastActivityAt.toDate()
-        : null;
-
-      if (!lastActivity) continue;
-
-      if (lastActivity < timeoutTime) {
-
-        await doc.ref.update({
-          status: "ended",
-          endedAt: admin.firestore.FieldValue.serverTimestamp(),
-          endedBy: "timeout"
-        });
-
-        console.log("Room ended due to inactivity:", doc.id);
-      }
-    }
-  }
-);
 
 // =======================================================
 // 4️⃣ CLEANUP ENDED ROOMS

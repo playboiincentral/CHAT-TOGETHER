@@ -131,6 +131,7 @@ class HomeViewModel: ObservableObject {
                     activeUsers: data["activeUsers"] as? [String] ?? [],
                     status: RoomStatus(rawValue: data["status"] as? String ?? "") ?? .active,
                     createdAt: data["createdAt"] as? Timestamp,
+                    expiresAt: data["expiresAt"] as? Timestamp,
                     endedAt: data["endedAt"] as? Timestamp,
                     endedBy: data["endedBy"] as? String,
                     lastActivityAt: data["lastActivityAt"] as? Timestamp
@@ -200,6 +201,7 @@ class HomeViewModel: ObservableObject {
                     activeUsers: data["activeUsers"] as? [String] ?? [],
                     status: RoomStatus(rawValue: data["status"] as? String ?? "") ?? .active,
                     createdAt: data["createdAt"] as? Timestamp,
+                    expiresAt: data["expiresAt"] as? Timestamp,
                     endedAt: data["endedAt"] as? Timestamp,
                     endedBy: data["endedBy"] as? String,
                     lastActivityAt: data["lastActivityAt"] as? Timestamp

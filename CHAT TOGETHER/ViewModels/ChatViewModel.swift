@@ -32,6 +32,8 @@ class ChatViewModel: ObservableObject {
     private var unfriendListener: ListenerRegistration?
     private var blockListener: ListenerRegistration?
     private var userDeletionListener: ListenerRegistration?
+    @Published var remainingTime: Int = 600
+    private var countdownTimer: Timer?
     
     init(room: ChatRoom, currentUserManager: CurrentUserManager) {
         self.room = room
@@ -46,12 +48,14 @@ class ChatViewModel: ObservableObject {
         
         if room.type == .random {
             startHeartbeat()
+            startCountdown()
         }
     }
     
     deinit {
         if room.type == .random {
             stopHeartbeat()
+            stopCountdown()
         }
 
         listener?.remove()
@@ -62,6 +66,43 @@ class ChatViewModel: ObservableObject {
         unfriendListener?.remove()
         blockListener?.remove()
         userDeletionListener?.remove()
+    }
+    
+    private func startCountdown() {
+        countdownTimer?.invalidate()
+
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+
+            guard let expiresAt = self.room.expiresAt?.dateValue() else { return }
+
+            let remaining = Int(expiresAt.timeIntervalSince(Date()))
+
+            DispatchQueue.main.async {
+                self.remainingTime = max(remaining, 0)
+            }
+
+            if remaining <= 0 {
+                self.handleTimeExpired()
+            }
+        }
+    }
+    
+    private func handleTimeExpired() {
+        countdownTimer?.invalidate()
+        
+        guard isRoomActive else { return }
+        
+        isRoomActive = false
+        
+        leaveRoom {
+            print("Auto left due to timeout")
+        }
+    }
+    
+    private func stopCountdown() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
     }
     
     private func startHeartbeat() {
@@ -429,6 +470,10 @@ class ChatViewModel: ObservableObject {
 
         userDeletionListener?.remove()
         userDeletionListener = nil
+        
+        if room.type == .random {
+            stopCountdown()
+        }
     }
     
     func cleanupAfterUnfriendInRandom() {

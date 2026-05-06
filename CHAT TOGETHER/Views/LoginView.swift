@@ -117,24 +117,6 @@ struct LoginView: View {
                         .background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
-                    
-                    Button {
-                        Task {
-                            await authVM.signInAsGuest()
-                        }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "person")
-                                .frame(width: 15, height: 15)
-                            Text("Continue as Guest")
-                        }
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 25))
-                    }
                 }
             }
             .padding()

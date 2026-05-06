@@ -20,6 +20,7 @@ struct ChatRoom: Identifiable, Codable {
     var status: RoomStatus
     
     var createdAt: Timestamp?
+    var expiresAt: Timestamp?
     var endedAt: Timestamp?
     var endedBy: String?
         

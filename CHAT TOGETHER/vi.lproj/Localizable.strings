@@ -99,6 +99,7 @@
 "Replying" = "Đang trả lời";
 "Block User?" = "Chặn Người Dùng?";
 "This conversation has ended. You can no longer send messages." = "Cuộc trò chuyện này đã kết thúc. Bạn không thể gửi tin nhắn nữa.";
+"time_left" = "Còn lại: %@";
 
 // SettingsView
 "Appearance" = "Giao Diện";

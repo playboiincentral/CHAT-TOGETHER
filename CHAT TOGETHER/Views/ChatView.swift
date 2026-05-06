@@ -40,10 +40,21 @@ struct ChatView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 headerView
                 Divider()
                 messageSection
+                    .overlay(alignment: .top) {
+                        if viewModel.room.type == .random {
+                            Text(String(format: NSLocalizedString("time_left", comment: ""), formatTime(viewModel.remainingTime)))
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                                .background(.ultraThinMaterial)
+                        }
+                    }
             }
             .navigationBarBackButtonHidden(true)
             .safeAreaInset(edge: .bottom) {
@@ -255,6 +266,12 @@ struct ChatView: View {
         }
     }
     
+    private func formatTime(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        return String(format: "%02d:%02d", m, s)
+    }
+    
     private func handleUnfriendFromProfile() {
         if viewModel.room.type == .friend {
             viewModel.shouldDismiss = true
@@ -265,8 +282,8 @@ struct ChatView: View {
     }
     
     private func handleBlockFromProfile() {
-            viewModel.shouldDismiss = true
-            viewModel.cleanupAfterBlock()
+        viewModel.shouldDismiss = true
+        viewModel.cleanupAfterBlock()
     }
     
     private var headerView: some View {
@@ -702,8 +719,8 @@ struct ChatView: View {
                             Image(systemName: "arrowshape.turn.up.left")
                             Text("Reply")
                         }
-                            .font(.headline)
-                            .foregroundColor(.primary)
+                        .font(.headline)
+                        .foregroundColor(.primary)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -738,21 +755,21 @@ struct ChatView: View {
                 Spacer()
                 
                 if let date = message.createdAt {
-                        HStack {
-                            if message.senderId == viewModel.userId && message.isAI != true {
-                                Spacer()
-                            }
-                            
-                            Text(overlayFormattedDate(date))
-                                .font(.caption)
-                                .foregroundColor(.primary.opacity(0.7))
-                            
-                            if message.senderId != viewModel.userId || message.isAI == true {
-                                Spacer()
-                            }
+                    HStack {
+                        if message.senderId == viewModel.userId && message.isAI != true {
+                            Spacer()
                         }
-                        .padding(.horizontal)
+                        
+                        Text(overlayFormattedDate(date))
+                            .font(.caption)
+                            .foregroundColor(.primary.opacity(0.7))
+                        
+                        if message.senderId != viewModel.userId || message.isAI == true {
+                            Spacer()
+                        }
                     }
+                    .padding(.horizontal)
+                }
                 
                 Button {
                     let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -867,12 +884,12 @@ struct ChatView: View {
         guard let partnerId = viewModel.partner?.uid else { return }
         
         if !relationManager.isRequestSent(to: partnerId),
-               !relationManager.canAddFriend(),
-               !relationManager.isFriend(with: partnerId) {
-                
-                showFriendLimitAlert = true
-                return
-            }
+           !relationManager.canAddFriend(),
+           !relationManager.isFriend(with: partnerId) {
+            
+            showFriendLimitAlert = true
+            return
+        }
         
         // 🚀 CASE 1: CANCEL REQUEST
         if relationManager.isRequestSent(to: partnerId) {
@@ -1204,7 +1221,7 @@ struct MessageRow: View {
             }
         )
         .onPreferenceChange(MessageFrameKey.self) { value in
-                self.currentFrame = value
+            self.currentFrame = value
         }
     }
     
