@@ -54,6 +54,7 @@ final class AuthService {
                 bio: nil,
                 avatar: nil,
                 createdAt: Date(),
+                dateOfBirth: nil,
                 fullnameChangeCount: 0,
                 fullnameLastResetAt: nil,
                 fullnameLastChangedAt: nil,

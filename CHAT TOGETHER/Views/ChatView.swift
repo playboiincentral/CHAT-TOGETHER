@@ -44,17 +44,6 @@ struct ChatView: View {
                 headerView
                 Divider()
                 messageSection
-                    .overlay(alignment: .top) {
-                        if viewModel.room.type == .random {
-                            Text(String(format: NSLocalizedString("time_left", comment: ""), formatTime(viewModel.remainingTime)))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.primary)
-                                .padding(.vertical, 10)
-                                .frame(maxWidth: .infinity)
-                                .background(.ultraThinMaterial)
-                        }
-                    }
             }
             .navigationBarBackButtonHidden(true)
             .safeAreaInset(edge: .bottom) {

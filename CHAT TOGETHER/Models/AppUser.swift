@@ -27,6 +27,7 @@ struct AppUser: Codable, Identifiable, Hashable {
     var bio: String?
     var avatar: String?
     var createdAt: Date?
+    var dateOfBirth: Date?
     
     var fullnameChangeCount: Int = 0
     var fullnameLastResetAt: Date? = nil

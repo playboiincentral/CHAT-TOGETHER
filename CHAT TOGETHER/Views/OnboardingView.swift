@@ -326,9 +326,20 @@ struct OnboardingView: View {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let userRef = Firestore.firestore().collection("users").document(uid)
         
+        let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd/yyyy"
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            guard let dobDate = formatter.date(from: onboardingVM.dobText) else {
+                print("❌ Invalid DOB")
+                return
+            }
+        
         var data: [String: Any] = [
-            "fullname": onboardingVM.displayName
+            "fullname": onboardingVM.displayName,
+            "dateOfBirth": dobDate
         ]
+        
         if let gender = onboardingVM.gender { data["gender"] = gender.rawValue }
         if let avatarURL = avatarURL { data["avatar"] = avatarURL }
         if !onboardingVM.bio.isEmpty { data["bio"] = onboardingVM.bio }

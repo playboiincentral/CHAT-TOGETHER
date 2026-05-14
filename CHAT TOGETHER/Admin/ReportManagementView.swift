@@ -12,12 +12,13 @@ struct ReportManagementView: View {
     @EnvironmentObject private var vm: AuthViewModel
     @State private var reports: [ChatReport] = []
     @State private var isLoading: Bool = false
+    @State private var selectedReport: ChatReport?
     
     var body: some View {
         NavigationStack {
             List(reports) { report in
-                NavigationLink {
-                    ReportDetailView(report: report, isLoading: $isLoading)
+                Button {
+                    selectedReport = report
                 } label: {
                     ReportRowView(report: report)
                 }
@@ -39,6 +40,12 @@ struct ReportManagementView: View {
             }
             .onAppear {
                 loadReports()
+            }
+            .fullScreenCover(item: $selectedReport) { report in
+                ReportDetailView(
+                    report: report,
+                    isLoading: $isLoading
+                )
             }
         }
     }
@@ -110,7 +117,7 @@ extension ReportManagementView {
                         }
                         
                         return ChatReport(
-                            id: doc.documentID, // ✅ FIX CHÍNH
+                            id: doc.documentID,
                             roomId: roomId,
                             reporterId: reporterId,
                             reportedUserId: reportedUserId,

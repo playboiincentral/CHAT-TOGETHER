@@ -14,142 +14,158 @@ struct ReportDetailView: View {
     @Binding var isLoading: Bool
     @State private var copiedReporter = false
     @State private var copiedReported = false
+    @Environment(\.dismiss) private var dismiss
     
     var messages: [ReportMessage] {
         report.messages
     }
     
     var body: some View {
-        VStack {
-            
-            // MARK: - Info
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Reason: \(report.reasons.map{$0.rawValue}.joined(separator: ", "))")
+        NavigationStack {
+            VStack {
                 
-                HStack {
-                    Text("Reporter: \(report.reporterId)")
-                    Image(systemName: "doc.on.doc")
-                }
-                .font(.caption)
-                .onTapGesture {
-                    UIPasteboard.general.string = report.reporterId
+                // MARK: - Info
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Reason: \(report.reasons.map{$0.rawValue}.joined(separator: ", "))")
                     
-                    withAnimation {
-                        copiedReporter = true
+                    HStack {
+                        Text("Reporter: \(report.reporterId)")
+                        Image(systemName: "doc.on.doc")
+                    }
+                    .font(.caption)
+                    .onTapGesture {
+                        UIPasteboard.general.string = report.reporterId
+                        
+                        withAnimation {
+                            copiedReporter = true
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation {
+                                copiedReporter = false
+                            }
+                        }
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        if copiedReporter {
+                            Text("Copied")
+                                .font(.caption2)
+                                .padding(4)
+                                .background(Color.black.opacity(0.7))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                                .transition(.opacity)
+                        }
                     }
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    HStack {
+                        Text("Reported: \(report.reportedUserId)")
+                        Image(systemName: "doc.on.doc")
+                    }
+                    .font(.caption)
+                    .onTapGesture {
+                        UIPasteboard.general.string = report.reportedUserId
+                        
                         withAnimation {
-                            copiedReporter = false
+                            copiedReported = true
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation {
+                                copiedReported = false
+                            }
+                        }
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        if copiedReported {
+                            Text("Copied")
+                                .font(.caption2)
+                                .padding(4)
+                                .background(Color.black.opacity(0.7))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                                .transition(.opacity)
+                        }
+                    }
+                    
+                    if let desc = report.description {
+                        Text(desc)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding()
+                
+                Divider()
+                
+                // MARK: - Chat preview
+                List(messages, id: \.createdAt) { message in
+                    HStack {
+                        if message.senderId == report.reportedUserId {
+                            Spacer()
+                            Text(message.text)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.2))
+                                .cornerRadius(8)
+                        } else {
+                            Text(message.text)
+                                .padding(8)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(8)
+                            Spacer()
                         }
                     }
                 }
-                .overlay(alignment: .topTrailing) {
-                    if copiedReporter {
-                        Text("Copied")
-                            .font(.caption2)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .foregroundColor(.white)
-                            .cornerRadius(6)
-                            .transition(.opacity)
-                    }
-                }
                 
+                // MARK: - Actions
                 HStack {
-                    Text("Reported: \(report.reportedUserId)")
-                    Image(systemName: "doc.on.doc")
-                }
-                .font(.caption)
-                .onTapGesture {
-                    UIPasteboard.general.string = report.reportedUserId
-                    
-                    withAnimation {
-                        copiedReported = true
+                    Button("Ignore") {
+                        updateReportStatus(.rejected)
                     }
+                    .foregroundColor(.gray)
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation {
-                            copiedReported = false
+                    Spacer()
+                    
+                    Button("Warn") {
+                        warnUser()
+                    }
+                    .foregroundStyle(.orange)
+                    
+                    Spacer()
+                    
+                    Menu("Ban") {
+                        Button("1 days") {
+                            banUser(days: 1)
+                        }
+                        Button("7 days") {
+                            banUser(days: 7)
+                        }
+                        Button("60 days") {
+                            banUser(days: 60)
+                        }
+                        Button("Permanent", role: .destructive) {
+                            permanentBan()
                         }
                     }
+                    .foregroundColor(.red)
                 }
-                .overlay(alignment: .topTrailing) {
-                    if copiedReported {
-                        Text("Copied")
-                            .font(.caption2)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .foregroundColor(.white)
-                            .cornerRadius(6)
-                            .transition(.opacity)
-                    }
-                }
-                
-                if let desc = report.description {
-                    Text(desc)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
+                .padding()
             }
-            .padding()
-            
-            Divider()
-            
-            // MARK: - Chat preview
-            List(messages, id: \.createdAt) { message in
-                HStack {
-                    if message.senderId == report.reportedUserId {
-                        Spacer()
-                        Text(message.text)
-                            .padding(8)
-                            .background(Color.blue.opacity(0.2))
-                            .cornerRadius(8)
-                    } else {
-                        Text(message.text)
-                            .padding(8)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(8)
-                        Spacer()
+            .navigationTitle("Report Detail")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
                     }
                 }
             }
-            
-            // MARK: - Actions
-            HStack {
-                Button("Ignore") {
-                    updateReportStatus(.rejected)
-                }
-                .foregroundColor(.gray)
-                
-                Spacer()
-                
-                Button("Warn") {
-                    warnUser()
-                }
-                .foregroundStyle(.orange)
-                
-                Spacer()
-                
-                Menu("Ban") {
-                    Button("1 days") {
-                        banUser(days: 1)
-                    }
-                    Button("7 days") {
-                        banUser(days: 7)
-                    }
-                    Button("60 days") {
-                        banUser(days: 60)
-                    }
-                    Button("Permanent", role: .destructive) {
-                        permanentBan()
-                    }
-                }
-                .foregroundColor(.red)
-            }
-            .padding()
         }
-        .navigationTitle("Report Detail")
     }
 }
 

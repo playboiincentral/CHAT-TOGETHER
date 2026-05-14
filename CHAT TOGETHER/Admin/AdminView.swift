@@ -19,6 +19,11 @@ struct AdminView: View {
                 .tabItem {
                     Label("Reports", systemImage: "exclamationmark.bubble")
                 }
+            
+            UserStatisticsView()
+                .tabItem {
+                    Label("Analytics", systemImage: "chart.bar")
+                }
         }
     }
 }

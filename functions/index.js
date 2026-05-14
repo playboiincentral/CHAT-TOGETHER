@@ -88,24 +88,6 @@ exports.joinQueue = onCall(async (request) => {
     let myQueue = data[myQueueKey] || [];
     let targetQueue = data[targetQueueKey] || [];
 
-    const now = Date.now();
-    const TIMEOUT = 30 * 1000;
-
-    // =========================
-    // 🔥 CLEAN QUEUE
-    // =========================
-
-    function clean(queue = []) {
-      return queue.filter(item => {
-      if (!item || typeof item.joinedAt !== "number") return false;
-
-      return now - item.joinedAt < TIMEOUT;
-      });
-    }
-
-    myQueue = clean(myQueue);
-    targetQueue = clean(targetQueue);
-
     // =========================
     // ❌ tránh join trùng
     // =========================
@@ -117,7 +99,8 @@ exports.joinQueue = onCall(async (request) => {
     if (alreadyInQueue) {
       data[myQueueKey] = myQueue;
       data[targetQueueKey] = targetQueue;
-      transaction.set(queueRef, data);
+
+      transaction.set(queueRef, data, { merge: true });
       return;
     }
 
@@ -133,6 +116,13 @@ exports.joinQueue = onCall(async (request) => {
       for (let i = 0; i < Math.min(MAX_CHECK, targetQueue.length); i++) {
 
         const candidate = targetQueue[i];
+
+        if (!candidate || !candidate.uid) {
+          targetQueue.splice(i, 1);
+          i--;
+          continue;
+        }
+
         const candidateId = candidate.uid;
         const isBlocked = blockedSet.has(candidateId);
         const isFriend = friendSet.has(candidateId);
@@ -155,7 +145,6 @@ exports.joinQueue = onCall(async (request) => {
           activeUsers: [userId, partnerId],
           status: "active",
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000),
           endedAt: null,
           endedBy: null,
           lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -169,8 +158,7 @@ exports.joinQueue = onCall(async (request) => {
       } else {
         // ❌ không match được → vào queue
         myQueue.push({
-          uid: userId,
-          joinedAt: Date.now()
+          uid: userId
         });
 
         data[myQueueKey] = myQueue;
@@ -179,14 +167,13 @@ exports.joinQueue = onCall(async (request) => {
     } else {
 
       myQueue.push({
-        uid: userId,
-        joinedAt: Date.now()
+        uid: userId
       });
 
       data[myQueueKey] = myQueue;
     }
 
-    transaction.set(queueRef, data);
+    transaction.set(queueRef, data, { merge: true });
   });
 
   return { roomId: createdRoomId };
