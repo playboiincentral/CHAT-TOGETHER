@@ -3,11 +3,10 @@ import Kingfisher
 
 struct ReceivedCard: View {
     let user: AppUser
+    let isAccepting: Bool
+    let isRejecting: Bool
     let acceptAction: () -> Void
     let rejectAction: () -> Void
-    
-    @State private var isAccepting = false
-    @State private var isRejecting = false
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -55,7 +54,6 @@ struct ReceivedCard: View {
             
             HStack(spacing: 5) {
                 Button {
-                    isRejecting = true
                     rejectAction()
                 } label: {
                     if isRejecting {
@@ -74,7 +72,6 @@ struct ReceivedCard: View {
                 .clipShape(Circle())
                 
                 Button {
-                    isAccepting = true
                     acceptAction()
                 } label: {
                     if isAccepting {

@@ -327,7 +327,7 @@ struct EditProfileView: View {
             data["avatar"] = avatarURL
         }
         
-        if let user {
+        if let user, user.fullname != fullname {
             let now = Date()
             
             let lastReset = user.fullnameLastResetAt ?? now

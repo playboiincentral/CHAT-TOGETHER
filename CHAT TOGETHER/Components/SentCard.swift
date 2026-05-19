@@ -3,10 +3,9 @@ import Kingfisher
 
 struct SentCard: View {
     let user: AppUser
+    let isCancel: Bool
     let cancelAction: () -> Void
-    
-    @State private var isCancel = false
-    
+        
     var body: some View {
             ZStack {
                 // IMAGE
@@ -55,7 +54,6 @@ struct SentCard: View {
                         Spacer()
                         
                         Button {
-                            isCancel = true
                             cancelAction()
                         } label: {
                             if isCancel {

@@ -303,6 +303,7 @@ class ChatViewModel: ObservableObject {
             "createdAt": FieldValue.serverTimestamp(),
             "reaction": NSNull(),
             "isAITrigger": text.range(of: "@tomi", options: .caseInsensitive) != nil,
+            "isAI": false,
             
             // 🔥 NEW
             "replyToMessageId": replyId as Any,

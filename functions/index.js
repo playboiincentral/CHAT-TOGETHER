@@ -1130,14 +1130,15 @@ exports.createReportWithSnapshot = onCall(async (request) => {
     .limit(50)
     .get();
 
-  const messages = messagesSnap.docs.map(doc => {
-    const data = doc.data();
-    return {
+  const messages = messagesSnap.docs
+    .map(doc => doc.data())
+    .filter(data => !data.isAI)
+    .map(data => ({
       senderId: data.senderId || "",
       text: data.text || "",
       createdAt: data.createdAt || null
-    };
-  }).reverse(); // đúng thứ tự thời gian
+    }))
+    .reverse();
 
   // =========================
   // 🔥 2. CREATE REPORT

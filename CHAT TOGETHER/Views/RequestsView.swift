@@ -24,7 +24,9 @@ struct RequestsView: View {
     
     @EnvironmentObject var relationManager: RelationManager
     @State private var selectedTab: RequestTab = .received
-    @State private var isAccepting: Bool = false
+    @State private var acceptingIds: Set<String> = []
+    @State private var rejectingIds: Set<String> = []
+    @State private var cancelIds: Set<String> = []
     
     private let columns = [
         GridItem(.flexible()),
@@ -93,7 +95,7 @@ struct RequestsView: View {
             ForEach(Array(relationManager.receivedRequests.keys), id: \.self) { userId in
                 
                 if let user = relationManager.users[userId] {
-                    ReceivedCard(user: user) {
+                    ReceivedCard(user: user, isAccepting: acceptingIds.contains(userId), isRejecting: rejectingIds.contains(userId)) {
                         accept(userId: userId)
                     } rejectAction: {
                         reject(userId: userId)
@@ -112,7 +114,7 @@ struct RequestsView: View {
             ForEach(Array(relationManager.sentRequests), id: \.self) { userId in
                 
                 if let user = relationManager.users[userId] {
-                    SentCard(user: user) {
+                    SentCard(user: user, isCancel: cancelIds.contains(userId)) {
                         cancelRequest(userId: userId)
                     }
                 } else {
@@ -161,12 +163,17 @@ extension RequestsView {
     func accept(userId: String) {
         guard let requestId = relationManager.requestId(from: userId) else { return }
                 
+        acceptingIds.insert(userId)
+        
         UserRelationService.shared.acceptFriendRequest(
             requestId: requestId,
             partnerId: userId
         ) { success in
             
             DispatchQueue.main.async {
+                
+                acceptingIds.remove(userId)
+                
                 if !success {
                     
                 }
@@ -177,20 +184,29 @@ extension RequestsView {
     func reject(userId: String) {
         guard let requestId = relationManager.requestId(from: userId) else { return }
         
+        rejectingIds.insert(userId)
+        
         UserRelationService.shared.declineFriendRequest(
-            requestId: requestId
-        ) { _ in }
+                requestId: requestId
+            ) { success in
+
+                DispatchQueue.main.async {
+                    rejectingIds.remove(userId)
+                }
+            }
     }
     
     func cancelRequest(userId: String) {
-        relationManager.cancelRequestLocally(to: userId)
+        
+        cancelIds.insert(userId)
         
         UserRelationService.shared.cancelFriendRequest(to: userId) { success in
             DispatchQueue.main.async {
                 
+                cancelIds.remove(userId)
+                
                 if !success {
-                    // rollback
-                    relationManager.rollbackCancelRequest(to: userId)
+                    
                 }
             }
         }
