@@ -4,7 +4,7 @@ Developed a social networking application that connects strangers through random
 
 ### Screenshots
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/66911adc-6a88-479f-ba57-4976e6dbea71" width="230">
+  <img src="https://github.com/user-attachments/assets/da5b9154-e440-4940-b7bf-93880bebd1f1" width="230">
   <img src="https://github.com/user-attachments/assets/09949738-6cd9-4fee-b66d-c43090f0c30b" width="230">
   <img src="https://github.com/user-attachments/assets/26b5c2b4-b4b7-4568-8bbd-97ec40bae423" width="230">
 </p>
