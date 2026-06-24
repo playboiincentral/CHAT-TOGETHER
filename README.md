@@ -4,6 +4,7 @@ Developed a social networking application that connects strangers through random
 
 ### Screenshots
 <img width="1320" height="2868" alt="Simulator Screenshot - iPhone 17 Pro Max - 2026-05-10 at 01 23 07" src="https://github.com/user-attachments/assets/26b5c2b4-b4b7-4568-8bbd-97ec40bae423" />
+<img width="1320" height="2868" alt="Simulator Screenshot - iPhone 17 Pro Max - 2026-05-10 at 01 20 05" src="https://github.com/user-attachments/assets/09949738-6cd9-4fee-b66d-c43090f0c30b" />
 
 ### Key Features
 
