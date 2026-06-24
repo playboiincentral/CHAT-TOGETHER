@@ -4,21 +4,21 @@ Developed a social networking application that connects strangers through random
 
 ### Screenshots
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/66911adc-6a88-479f-ba57-4976e6dbea71" width="180">
-  <img src="https://github.com/user-attachments/assets/09949738-6cd9-4fee-b66d-c43090f0c30b" width="180">
-  <img src="https://github.com/user-attachments/assets/26b5c2b4-b4b7-4568-8bbd-97ec40bae423" width="180">
-  <img src="https://github.com/user-attachments/assets/771e8cb3-0e66-435b-9539-07124ea21d1b" width="180">
+  <img src="https://github.com/user-attachments/assets/66911adc-6a88-479f-ba57-4976e6dbea71" width="230">
+  <img src="https://github.com/user-attachments/assets/09949738-6cd9-4fee-b66d-c43090f0c30b" width="230">
+  <img src="https://github.com/user-attachments/assets/26b5c2b4-b4b7-4568-8bbd-97ec40bae423" width="230">
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/45942ffe-bfd5-4e6d-9d59-89ad7b94be70" width="180">
-  <img src="https://github.com/user-attachments/assets/ac6cbf8d-42ba-491a-9a37-a1bf6e5badf3" width="180">
-  <img src="https://github.com/user-attachments/assets/c8abf0d8-c489-45b3-804e-c187afe1d506" width="180">
-  <img src="https://github.com/user-attachments/assets/e0472d97-2eb4-4544-aaa8-9b89cbe79dad" width="180">
+  <img src="https://github.com/user-attachments/assets/771e8cb3-0e66-435b-9539-07124ea21d1b" width="230">
+  <img src="https://github.com/user-attachments/assets/45942ffe-bfd5-4e6d-9d59-89ad7b94be70" width="230">
+  <img src="https://github.com/user-attachments/assets/ac6cbf8d-42ba-491a-9a37-a1bf6e5badf3" width="230">
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/de8b85a5-457b-41ea-86ea-f2dada9a15fc" width="180">
+  <img src="https://github.com/user-attachments/assets/c8abf0d8-c489-45b3-804e-c187afe1d506" width="230">
+  <img src="https://github.com/user-attachments/assets/e0472d97-2eb4-4544-aaa8-9b89cbe79dad" width="230">
+  <img src="https://github.com/user-attachments/assets/de8b85a5-457b-41ea-86ea-f2dada9a15fc" width="230">
 </p>
 
 ### Key Features
